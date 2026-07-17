@@ -1,5 +1,6 @@
 import React from "react";
 import Sidebar from "./Sidebar";
+import Header from "./Header";
 
 export default function Layout({ children }) {
   return (
@@ -14,16 +15,25 @@ export default function Layout({ children }) {
 
       <Sidebar />
 
-      {/* Main */}
+      <div
+  style={{
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+  }}
+>
+  <Header />
 
-      <main
-        style={{
-          flex: 1,
-          padding: "40px"
-        }}
-      >
-        {children}
-      </main>
+  <main
+    style={{
+      flex: 1,
+      padding: "35px",
+      background: "#f8fafc",
+    }}
+  >
+    {children}
+  </main>
+</div>
     </div>
   );
 }
