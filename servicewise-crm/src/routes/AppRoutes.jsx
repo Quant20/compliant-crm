@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import Layout from "../components/layout/Layout";
 
 const Dashboard = () => <h1>Dashboard</h1>;
 const Tickets = () => <h1>Tickets</h1>;
@@ -13,7 +14,14 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-      <Route path="/dashboard" element={<Dashboard />} />
+      <Route
+    path="/dashboard"
+    element={
+        <Layout>
+            <Dashboard />
+        </Layout>
+    }
+/>
       <Route path="/tickets" element={<Tickets />} />
       <Route path="/customers" element={<Customers />} />
       <Route path="/agents" element={<Agents />} />
