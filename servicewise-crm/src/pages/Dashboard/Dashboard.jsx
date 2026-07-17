@@ -1,23 +1,21 @@
-import Button from "../../components/ui/Button";
-import Card from "../../components/ui/Card";
-import Badge from "../../components/ui/Badge";
-import Input from "../../components/ui/Input";
+import KPIGrid from "../../components/dashboard/KPIGrid";
+import RecentTickets from "../../components/dashboard/RecentTickets";
+import QuickActions from "../../components/dashboard/QuickActions";
+import RecentActivity from "../../components/dashboard/RecentActivity";
 
 export default function Dashboard() {
   return (
-    <>
+    <div>
       <h1>Dashboard</h1>
 
-      <Card title="UI Components Preview">
-        <Input label="Customer Name" placeholder="Enter customer name" />
+      <KPIGrid />
 
-        <Badge color="success">Open</Badge>
+      <div className="dashboard-grid">
+        <RecentTickets />
+        <QuickActions />
+      </div>
 
-        <br />
-        <br />
-
-        <Button>Primary Button</Button>
-      </Card>
-    </>
+      <RecentActivity />
+    </div>
   );
 }

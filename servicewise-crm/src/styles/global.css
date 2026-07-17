@@ -3,6 +3,7 @@
 @import "./sidebar.css";
 @import "./header.css";
 @import "./ui.css";
+@import "./dashboard.css";
 
 *{
     margin:0;

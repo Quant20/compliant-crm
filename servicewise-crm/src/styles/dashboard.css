@@ -1,0 +1,58 @@
+.kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+    margin-bottom:30px;
+}
+
+.kpi-grid .card h1{
+    font-size:34px;
+    margin:12px 0;
+}
+
+.kpi-grid .card p{
+    color:#6B7280;
+}
+.dashboard-grid{
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:20px;
+    margin-bottom:20px;
+}
+
+.recent-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.recent-table th,
+.recent-table td{
+    padding:12px;
+    border-bottom:1px solid #E5E7EB;
+    text-align:left;
+}
+
+.quick-actions{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.activity-list{
+    list-style:none;
+    padding:0;
+    margin:0;
+}
+
+.activity-list li{
+    padding:12px 0;
+    border-bottom:1px solid #E5E7EB;
+}
+
+@media (max-width:900px){
+
+    .dashboard-grid{
+
+        grid-template-columns:1fr;
+    }
+}
