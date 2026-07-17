@@ -1,0 +1,46 @@
+const tickets = [
+  {
+    id: 1,
+    ticketNumber: "SW-2026-0001",
+    subject: "Unable to login to portal",
+    description: "Customer cannot login after password reset.",
+    customer: {
+      id: 101,
+      name: "Ali Khan",
+      email: "ali@example.com",
+    },
+    category: "Authentication",
+    priority: "High",
+    status: "Open",
+    assignedAgent: "Sarah Ahmed",
+    sla: "8 Hours",
+    createdAt: "2026-07-15 09:30",
+    updatedAt: "2026-07-15 10:10",
+    attachments: [],
+    comments: [],
+    activities: [],
+  },
+  {
+    id: 2,
+    ticketNumber: "SW-2026-0002",
+    subject: "Payment failed",
+    description: "Card payment is declining.",
+    customer: {
+      id: 102,
+      name: "Ahmed Raza",
+      email: "ahmed@example.com",
+    },
+    category: "Payments",
+    priority: "Critical",
+    status: "In Progress",
+    assignedAgent: "Usman Ali",
+    sla: "4 Hours",
+    createdAt: "2026-07-16 11:00",
+    updatedAt: "2026-07-16 11:45",
+    attachments: [],
+    comments: [],
+    activities: [],
+  },
+];
+
+export default tickets;
