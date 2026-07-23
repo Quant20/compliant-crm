@@ -1,0 +1,176 @@
+/* ServiceWise ticket row and quick-action controls. */
+
+.crm-ticket-actions {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  min-width: 0;
+}
+
+.crm-ticket-action-trigger,
+.crm-ticket-action-icon,
+.crm-ticket-more-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid #d5dee7;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  font: inherit;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.crm-ticket-action-trigger:hover:not(:disabled),
+.crm-ticket-action-icon:hover:not(:disabled),
+.crm-ticket-more-button:hover:not(:disabled) {
+  border-color: #087f73;
+  background: #edf9f6;
+  color: #087f73;
+  transform: translateY(-1px);
+}
+
+.crm-ticket-action-trigger:focus-visible,
+.crm-ticket-action-icon:focus-visible,
+.crm-ticket-more-button:focus-visible {
+  outline: 2px solid #087f73;
+  outline-offset: 2px;
+}
+
+.crm-ticket-action-trigger:disabled,
+.crm-ticket-action-icon:disabled,
+.crm-ticket-more-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.crm-ticket-action-trigger.danger,
+.crm-ticket-action-icon.danger {
+  border-color: #fecaca;
+  background: #fff7f7;
+  color: #b42318;
+}
+
+.crm-ticket-action-trigger.danger:hover:not(:disabled),
+.crm-ticket-action-icon.danger:hover:not(:disabled) {
+  border-color: #b42318;
+  background: #b42318;
+  color: #ffffff;
+}
+
+.crm-ticket-more-wrapper {
+  position: relative;
+}
+
+.crm-ticket-more-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 90;
+  width: 210px;
+  overflow: hidden;
+  padding: 7px;
+  border: 1px solid #dbe4ec;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.16);
+}
+
+.crm-ticket-more-menu::before {
+  position: absolute;
+  top: -5px;
+  right: 14px;
+  width: 9px;
+  height: 9px;
+  border-top: 1px solid #dbe4ec;
+  border-left: 1px solid #dbe4ec;
+  background: #ffffff;
+  content: "";
+  transform: rotate(45deg);
+}
+
+.crm-ticket-more-menu button {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #344054;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+
+.crm-ticket-more-menu button:last-child {
+  color: #b42318;
+}
+
+.crm-ticket-more-menu button:hover {
+  background: #f1f7f6;
+  color: #087f73;
+}
+
+.crm-ticket-more-menu button:last-child:hover {
+  background: #fff1f2;
+  color: #b42318;
+}
+
+.crm-ticket-more-menu button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.crm-ticket-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.crm-ticket-inline-action {
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid #d5dee7;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.crm-ticket-inline-action:hover:not(:disabled) {
+  border-color: #087f73;
+  background: #edf9f6;
+  color: #087f73;
+}
+
+@media (max-width: 720px) {
+  .crm-ticket-more-menu {
+    position: fixed;
+    top: auto;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: auto;
+  }
+
+  .crm-ticket-more-menu::before {
+    display: none;
+  }
+}

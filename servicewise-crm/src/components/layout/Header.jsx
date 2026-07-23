@@ -1,50 +1,36 @@
-import React from "react";
 import { FaBell, FaSearch, FaUserCircle } from "react-icons/fa";
+import { useLocation } from "react-router-dom";
+
+const titles = {
+  "/dashboard": "Dashboard",
+  "/tickets": "Tickets",
+  "/customers": "Customers",
+  "/agents": "Agents",
+  "/knowledge-base": "Knowledge Base",
+  "/reports": "Reports",
+  "/settings": "Settings",
+};
 
 export default function Header() {
+  const { pathname } = useLocation();
+  const title = titles[pathname] || "ServiceWise CRM";
+
   return (
-    <header
-      style={{
-        height: "70px",
-        background: "#ffffff",
-        borderBottom: "1px solid #e5e7eb",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "0 30px",
-      }}
-    >
+    <header className="header">
       <div>
-        <h2
-          style={{
-            margin: 0,
-            color: "#111827",
-          }}
-        >
-          Dashboard
-        </h2>
-
-        <small
-          style={{
-            color: "#6b7280",
-          }}
-        >
-          Welcome to ServiceWise CRM
-        </small>
+        <h1 className="header-title">{title}</h1>
+        <p className="header-subtitle">Welcome to ServiceWise CRM</p>
       </div>
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "20px",
-        }}
-      >
-        <FaSearch size={18} />
-
-        <FaBell size={18} />
-
-        <FaUserCircle size={34} />
+      <div className="header-actions" aria-label="Header actions">
+        <button type="button" className="icon-button" aria-label="Search">
+          <FaSearch />
+        </button>
+        <button type="button" className="icon-button" aria-label="Notifications">
+          <FaBell />
+        </button>
+        <button type="button" className="profile-button" aria-label="User profile">
+          <FaUserCircle />
+        </button>
       </div>
     </header>
   );

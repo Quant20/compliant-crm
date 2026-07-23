@@ -1,0 +1,33 @@
+/* =========================================================
+   TICKET DETAILS LAYOUT OVERRIDES
+   Main content follows the page scroll.
+   The properties sidebar has its own scroll.
+========================================================= */
+
+.crm-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 18px;
+  align-items: start;
+  min-width: 0;
+}
+
+.crm-detail-main {
+  min-width: 0;
+}
+
+.crm-detail-sidebar {
+  min-width: 0;
+}
+
+@media (max-width: 1200px) {
+  .crm-detail-layout {
+    grid-template-columns: minmax(0, 1fr) 330px;
+  }
+}
+
+@media (max-width: 1050px) {
+  .crm-detail-layout {
+    grid-template-columns: 1fr;
+  }
+}

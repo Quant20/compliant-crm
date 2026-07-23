@@ -1,0 +1,533 @@
+/* =========================================================
+   CHANNEL-NEUTRAL CUSTOMER MESSAGES
+========================================================= */
+
+.customer-messages-panel {
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #dbe4ec;
+  border-radius: 12px;
+}
+
+.customer-messages-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 22px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.customer-messages-header h2 {
+  margin: 0 0 5px;
+  color: #10233f;
+  font-size: 20px;
+}
+
+.customer-messages-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.customer-message-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.customer-message-source.channel-whatsapp {
+  color: #067647;
+  background: #ecfdf3;
+  border-color: #abefc6;
+}
+
+.customer-message-source.channel-email {
+  color: #175cd3;
+  background: #eff8ff;
+  border-color: #b2ddff;
+}
+
+.customer-message-source.channel-phone {
+  color: #6941c6;
+  background: #f4f3ff;
+  border-color: #d9d6fe;
+}
+
+.customer-message-source.channel-web,
+.customer-message-source.channel-manual {
+  color: #475467;
+  background: #f2f4f7;
+  border-color: #d0d5dd;
+}
+
+/* =========================================================
+   CURRENT CHANNEL SUMMARY
+========================================================= */
+
+.communication-route-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 13px;
+  margin: 18px 20px 0;
+  padding: 15px 16px;
+  border: 1px solid;
+  border-radius: 10px;
+}
+
+.communication-route-card.email {
+  background: #f5faff;
+  border-color: #b2ddff;
+}
+
+.communication-route-card.whatsapp {
+  background: #f4fbf8;
+  border-color: #bde4dc;
+}
+
+.communication-route-card.phone {
+  background: #f8f7ff;
+  border-color: #d9d6fe;
+}
+
+.communication-route-card.general {
+  background: #f8fafc;
+  border-color: #dbe4ec;
+}
+
+.communication-route-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  color: #0f766e;
+  background: #ffffff;
+  border: 1px solid #d5dee7;
+  border-radius: 10px;
+}
+
+.communication-route-details span,
+.communication-route-details strong,
+.communication-route-details small {
+  display: block;
+}
+
+.communication-route-details span {
+  margin-bottom: 3px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.communication-route-details strong {
+  margin-bottom: 3px;
+  color: #123047;
+  font-size: 13px;
+}
+
+.communication-route-details small {
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.communication-route-card > button,
+.communication-route-status {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.communication-route-card > button {
+  color: #175cd3;
+  background: #ffffff;
+  border: 1px solid #b2ddff;
+  cursor: pointer;
+}
+
+.communication-route-card > button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.communication-route-status {
+  color: #067647;
+  background: #ffffff;
+  border: 1px solid #abefc6;
+}
+
+/* =========================================================
+   FILTERS
+========================================================= */
+
+.customer-message-filters,
+.customer-message-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 16px 20px;
+}
+
+.customer-message-filters {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.customer-message-actions {
+  padding-bottom: 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+.customer-message-filters button,
+.customer-message-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 35px;
+  padding: 7px 11px;
+  color: #64748b;
+  background: #ffffff;
+  border: 1px solid #d5dee7;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.customer-message-filters button:hover,
+.customer-message-filters button.active,
+.customer-message-actions button:hover,
+.customer-message-actions button.active {
+  color: #0f766e;
+  background: #eef8f6;
+  border-color: #0f766e;
+}
+
+.customer-message-actions
+  .customer-message-email-action {
+  color: #175cd3;
+  background: #eff8ff;
+  border-color: #b2ddff;
+}
+
+.customer-message-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   MESSAGE LIST
+========================================================= */
+
+.customer-message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 280px;
+  max-height: 560px;
+  overflow-y: auto;
+  padding: 20px;
+  background: #f8fafc;
+}
+
+.customer-message-card {
+  width: min(78%, 680px);
+  padding: 13px 15px;
+  background: #ffffff;
+  border: 1px solid #dbe4ec;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.customer-message-card.inbound {
+  align-self: flex-start;
+  border-top-left-radius: 4px;
+}
+
+.customer-message-card.outbound {
+  align-self: flex-end;
+  background: #eaf8f4;
+  border-color: #bde4dc;
+  border-top-right-radius: 4px;
+}
+
+.customer-message-meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 9px;
+}
+
+.customer-message-meta strong {
+  color: #1e293b;
+  font-size: 12px;
+}
+
+.sender-role {
+  display: inline-flex;
+  margin-left: 7px;
+  padding: 3px 6px;
+  color: #6941c6;
+  background: #f4f3ff;
+  border: 1px solid #d9d6fe;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.message-source-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.message-source-meta time {
+  color: #94a3b8;
+  font-size: 9px;
+}
+
+.message-channel {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.message-channel.channel-whatsapp {
+  color: #067647;
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
+}
+
+.message-channel.channel-email {
+  color: #175cd3;
+  background: #eff8ff;
+  border: 1px solid #b2ddff;
+}
+
+.message-channel.channel-phone {
+  color: #6941c6;
+  background: #f4f3ff;
+  border: 1px solid #d9d6fe;
+}
+
+.message-channel.channel-manual,
+.message-channel.channel-web {
+  color: #475467;
+  background: #f2f4f7;
+  border: 1px solid #d0d5dd;
+}
+
+.message-group-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.customer-message-card p {
+  margin: 0;
+  color: #334155;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.message-delivery-status {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.customer-messages-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  padding: 28px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.customer-messages-empty > svg {
+  margin-bottom: 12px;
+  font-size: 30px;
+}
+
+.customer-messages-empty h3 {
+  margin: 0 0 6px;
+  color: #334155;
+  font-size: 16px;
+}
+
+.customer-messages-empty p {
+  max-width: 420px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* =========================================================
+   COMPOSER
+========================================================= */
+
+.customer-message-composer {
+  padding: 15px 20px 20px;
+  background: #ffffff;
+}
+
+.message-composer-heading {
+  margin-bottom: 11px;
+}
+
+.message-composer-heading h3 {
+  margin: 0 0 4px;
+  color: #10233f;
+  font-size: 15px;
+}
+
+.message-composer-heading p {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.whatsapp-integration-warning,
+.customer-message-error {
+  margin-bottom: 11px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.whatsapp-integration-warning {
+  color: #b54708;
+  background: #fffaeb;
+  border: 1px solid #fedf89;
+}
+
+.customer-message-error {
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+}
+
+.customer-message-composer textarea {
+  width: 100%;
+  min-height: 115px;
+  padding: 12px 13px;
+  color: #1e293b;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.customer-message-composer textarea:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+
+.customer-message-composer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 11px;
+}
+
+.customer-message-composer-footer span {
+  margin-right: auto;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.customer-message-composer-footer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 9px 15px;
+  color: #ffffff;
+  background: #0f766e;
+  border: 1px solid #0f766e;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.customer-message-composer-footer button:hover:not(:disabled) {
+  background: #0b625c;
+  border-color: #0b625c;
+}
+
+.customer-message-composer-footer button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .customer-messages-header,
+  .customer-message-composer-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .customer-message-source {
+    align-self: flex-start;
+  }
+
+  .communication-route-card {
+    grid-template-columns: auto 1fr;
+  }
+
+  .communication-route-card > button,
+  .communication-route-status {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .customer-message-card {
+    width: 92%;
+  }
+
+  .customer-message-composer-footer span {
+    margin-right: 0;
+  }
+
+  .customer-message-composer-footer button {
+    justify-content: center;
+    width: 100%;
+  }
+}

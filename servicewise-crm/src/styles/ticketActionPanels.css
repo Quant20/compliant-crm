@@ -1,0 +1,284 @@
+/* ServiceWise legacy ticket action panels and modals. */
+
+.ticket-action-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(3px);
+}
+
+.ticket-action-modal,
+.ticket-action-panel {
+  width: min(620px, 100%);
+  max-height: min(760px, calc(100vh - 44px));
+  overflow: auto;
+  border: 1px solid #dbe4ec;
+  border-radius: 15px;
+  background: #ffffff;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.24);
+}
+
+.ticket-action-modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 22px;
+  border-bottom: 1px solid #e5eaf0;
+  background: #ffffff;
+}
+
+.ticket-action-modal-header h2 {
+  margin: 0;
+  color: #10233f;
+  font-size: 20px;
+}
+
+.ticket-action-modal-header p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.ticket-action-modal-header button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  padding: 0;
+  border: 1px solid #dbe4ec;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.ticket-action-modal-header button:hover {
+  border-color: #b42318;
+  background: #fff1f2;
+  color: #b42318;
+}
+
+.ticket-action-modal-body {
+  padding: 22px;
+}
+
+.ticket-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px;
+}
+
+.ticket-action-field {
+  min-width: 0;
+}
+
+.ticket-action-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.ticket-action-field label {
+  display: block;
+  margin-bottom: 7px;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.ticket-action-field label span {
+  color: #dc2626;
+}
+
+.ticket-action-field input,
+.ticket-action-field select,
+.ticket-action-field textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid #cfd8e3;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #172033;
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ticket-action-field textarea {
+  min-height: 125px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.ticket-action-field input:focus,
+.ticket-action-field select:focus,
+.ticket-action-field textarea:focus {
+  border-color: #087f73;
+  box-shadow: 0 0 0 3px rgba(8, 127, 115, 0.12);
+}
+
+.ticket-action-field input:disabled,
+.ticket-action-field select:disabled,
+.ticket-action-field textarea:disabled {
+  background: #f3f5f7;
+  cursor: not-allowed;
+}
+
+.ticket-action-helper {
+  display: block;
+  margin-top: 6px;
+  color: #7b8798;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.ticket-action-error {
+  margin-bottom: 17px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fff1f2;
+  color: #b42318;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.ticket-action-summary {
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid #dbe4ec;
+  border-radius: 9px;
+  background: #f8fafc;
+}
+
+.ticket-action-summary strong,
+.ticket-action-summary span {
+  display: block;
+}
+
+.ticket-action-summary strong {
+  color: #10233f;
+  font-size: 13px;
+}
+
+.ticket-action-summary span {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.ticket-action-modal-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid #e5eaf0;
+  background: #ffffff;
+}
+
+.ticket-action-primary-button,
+.ticket-action-cancel-button,
+.ticket-action-call-button {
+  min-height: 40px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.ticket-action-primary-button {
+  border: 1px solid #087f73;
+  background: #087f73;
+  color: #ffffff;
+}
+
+.ticket-action-primary-button:hover {
+  border-color: #066b62;
+  background: #066b62;
+  transform: translateY(-1px);
+}
+
+.ticket-action-primary-button:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.ticket-action-cancel-button {
+  border: 1px solid #cfd8e3;
+  background: #ffffff;
+  color: #475569;
+}
+
+.ticket-action-cancel-button:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.ticket-action-call-button {
+  border: 1px solid #2878d0;
+  background: #2878d0;
+  color: #ffffff;
+}
+
+.ticket-action-call-button:hover:not(:disabled) {
+  border-color: #1d64b4;
+  background: #1d64b4;
+}
+
+.ticket-action-call-button:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
+}
+
+.ticket-action-danger-button {
+  border-color: #b42318;
+  background: #b42318;
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .ticket-action-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .ticket-action-modal,
+  .ticket-action-panel {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .ticket-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ticket-action-modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .ticket-action-modal-footer button {
+    width: 100%;
+  }
+}

@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Recovery exclusions
+node_modules/
+.env
+.env.*
+!.env.example
+*.tar.gz
+dist/
