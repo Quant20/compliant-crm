@@ -1,0 +1,105 @@
+/* Uses the working EmailReplyModal layout and adds note-only details. */
+
+.crm-note-email-composer {
+  width: min(860px, 100%);
+}
+
+.crm-note-email-composer-expanded {
+  width: calc(100vw - 32px);
+  height: calc(100vh - 32px);
+  max-height: none;
+}
+
+.crm-note-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.crm-note-for-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
+  padding: 10px 20px;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 13px;
+}
+
+.crm-note-for-row strong,
+.crm-note-associated-row strong {
+  display: inline-flex;
+  align-items: center;
+  min-height: 29px;
+  padding: 4px 10px;
+  color: #334155;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.crm-note-editor-shell {
+  min-height: 390px;
+}
+
+.crm-note-editor-area {
+  min-height: 335px;
+}
+
+.crm-note-email-composer-expanded
+.crm-note-editor-shell {
+  flex: 1;
+}
+
+.crm-note-email-composer-expanded
+.crm-note-editor-area {
+  min-height: calc(100vh - 350px);
+}
+
+.crm-note-associated-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 52px;
+  padding: 10px 20px;
+  color: #475569;
+  background: #fbfcfd;
+  border-top: 1px solid #e2e8f0;
+  font-size: 13px;
+}
+
+.crm-email-send:disabled,
+.crm-email-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.crm-note-content {
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.crm-note-content p {
+  margin: 0 0 8px;
+}
+
+.crm-note-content p:last-child {
+  margin-bottom: 0;
+}
+
+.crm-note-content ul,
+.crm-note-content ol {
+  margin: 8px 0;
+  padding-left: 22px;
+}
+
+@media (max-width: 650px) {
+  .crm-note-email-composer-expanded {
+    width: 100%;
+    height: calc(100vh - 20px);
+  }
+}

@@ -1,0 +1,391 @@
+/* =========================================================
+   TICKET ACTION BAR
+========================================================= */
+
+.crm-ticket-action-strip {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 18px 0 24px;
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid #dbe4ec;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.crm-ticket-action-button {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  min-width: 70px;
+  padding: 0;
+  color: #334155;
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.crm-ticket-action-button > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: #0f766e;
+  background: #ffffff;
+  border: 1px solid #9fb3c2;
+  border-radius: 50%;
+  font-size: 16px;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.crm-ticket-action-button:hover:not(:disabled) > span {
+  color: #ffffff;
+  background: #0f766e;
+  border-color: #0f766e;
+  transform: translateY(-2px);
+}
+
+.crm-ticket-action-button.danger {
+  margin-left: auto;
+}
+
+.crm-ticket-action-button.danger > span {
+  color: #b42318;
+  border-color: #efb4ad;
+}
+
+.crm-ticket-action-button.danger:hover:not(:disabled) > span {
+  color: #ffffff;
+  background: #b42318;
+  border-color: #b42318;
+}
+
+.crm-ticket-action-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   SHARED ACTION MODAL
+========================================================= */
+
+.crm-action-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.46);
+  backdrop-filter: blur(2px);
+}
+
+.crm-action-modal {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.3);
+}
+
+.crm-action-modal-large {
+  width: min(900px, 100%);
+}
+
+.crm-action-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 22px;
+  border-bottom: 1px solid #dbe4ec;
+}
+
+.crm-action-modal-header h2 {
+  margin: 0 0 4px;
+  color: #0f172a;
+  font-size: 20px;
+}
+
+.crm-action-modal-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.crm-action-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #d5dee7;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.crm-action-close:hover {
+  color: #b42318;
+  background: #fff5f4;
+  border-color: #efb4ad;
+}
+
+/* =========================================================
+   ACTION FORMS
+========================================================= */
+
+.crm-standard-action-form {
+  padding: 0;
+}
+
+.crm-action-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  padding: 22px;
+}
+
+.crm-action-field {
+  min-width: 0;
+}
+
+.crm-action-field.full {
+  grid-column: 1 / -1;
+}
+
+.crm-action-field label {
+  display: block;
+  margin-bottom: 7px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.crm-action-field input,
+.crm-action-field select,
+.crm-action-field textarea {
+  width: 100%;
+  padding: 11px 12px;
+  color: #1e293b;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.crm-action-field input,
+.crm-action-field select {
+  min-height: 44px;
+}
+
+.crm-action-field textarea {
+  min-height: 135px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.crm-action-field input:focus,
+.crm-action-field select:focus,
+.crm-action-field textarea:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+
+/* =========================================================
+   CALL PANEL
+========================================================= */
+
+.crm-call-customer-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 22px 22px 0;
+  padding: 18px;
+  background: #f8fafc;
+  border: 1px solid #dbe4ec;
+  border-radius: 10px;
+}
+
+.crm-call-customer-card span,
+.crm-call-customer-card strong {
+  display: block;
+}
+
+.crm-call-customer-card span {
+  margin-bottom: 5px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.crm-call-customer-card strong {
+  color: #10233f;
+  font-size: 18px;
+}
+
+.crm-call-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 43px;
+  padding: 10px 17px;
+  color: #ffffff;
+  background: #0f766e;
+  border: 1px solid #0f766e;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.crm-call-button:hover:not(:disabled) {
+  background: #0b625c;
+  border-color: #0b625c;
+}
+
+.crm-call-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   ERROR + FOOTER
+========================================================= */
+
+.crm-action-error {
+  margin: 18px 22px 0;
+  padding: 11px 13px;
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.crm-composer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-height: 68px;
+  padding: 13px 22px;
+  background: #fbfcfd;
+  border-top: 1px solid #dbe4ec;
+}
+
+.crm-composer-footer > span {
+  margin-right: auto;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.crm-action-primary,
+.crm-action-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 41px;
+  padding: 9px 17px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.crm-action-primary {
+  color: #ffffff;
+  background: #0f766e;
+  border: 1px solid #0f766e;
+}
+
+.crm-action-primary:hover {
+  background: #0b625c;
+  border-color: #0b625c;
+}
+
+.crm-action-secondary {
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+}
+
+.crm-action-secondary:hover {
+  background: #f8fafc;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 700px) {
+  .crm-action-overlay {
+    padding: 10px;
+  }
+
+  .crm-action-modal {
+    max-height: calc(100vh - 20px);
+  }
+
+  .crm-action-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-action-field.full {
+    grid-column: auto;
+  }
+
+  .crm-call-customer-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crm-call-button {
+    width: 100%;
+  }
+
+  .crm-ticket-action-button.danger {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .crm-ticket-action-strip {
+    justify-content: center;
+  }
+
+  .crm-composer-footer {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .crm-action-primary,
+  .crm-action-secondary {
+    width: 100%;
+  }
+}

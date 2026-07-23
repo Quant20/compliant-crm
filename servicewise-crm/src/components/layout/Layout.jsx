@@ -1,39 +1,48 @@
-import React from "react";
-import Sidebar from "./Sidebar";
+import { useState } from "react";
+import { Outlet } from "react-router-dom";
+
 import Header from "./Header";
+import Sidebar from "./Sidebar";
 
-export default function Layout({ children }) {
+export default function Layout() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  const shellClassName = [
+    "crm-workspace-shell",
+    sidebarCollapsed ? "sidebar-collapsed" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div
-      style={{
-        display: "flex",
-        minHeight: "100vh",
-        background: "#f8fafc"
-      }}
-    >
-      {/* Sidebar */}
+    <div className={shellClassName}>
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        mobileOpen={mobileSidebarOpen}
+        onNavigate={() => setMobileSidebarOpen(false)}
+      />
 
-      <Sidebar />
+      {mobileSidebarOpen && (
+        <button
+          type="button"
+          className="crm-mobile-sidebar-backdrop"
+          aria-label="Close navigation"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
 
-      <div
-  style={{
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-  }}
->
-  <Header />
+      <div className="crm-workspace-main">
+        <Header
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={() => setSidebarCollapsed((current) => !current)}
+          onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
+        />
 
-  <main
-    style={{
-      flex: 1,
-      padding: "35px",
-      background: "#f8fafc",
-    }}
-  >
-    {children}
-  </main>
-</div>
+        <main className="crm-page-content">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

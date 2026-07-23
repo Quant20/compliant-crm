@@ -1,50 +1,85 @@
-import React from "react";
-import { FaBell, FaSearch, FaUserCircle } from "react-icons/fa";
+import {
+  FaBars,
+  FaBell,
+  FaChevronLeft,
+  FaChevronRight,
+  FaSearch,
+} from "react-icons/fa";
+import { useLocation } from "react-router-dom";
 
-export default function Header() {
+const titles = {
+  "/dashboard": "Dashboard",
+  "/tickets": "Tickets",
+  "/whatsapp-inbox": "WhatsApp Inbox",
+  "/customers": "Customers",
+  "/agents": "Agents",
+  "/knowledge-base": "Knowledge Base",
+  "/reports": "Reports",
+  "/settings": "Settings",
+};
+
+function getPageTitle(pathname) {
+  if (pathname.startsWith("/tickets/")) {
+    return "Ticket Details";
+  }
+
+  return titles[pathname] || "ServiceWise CRM";
+}
+
+export default function Header({
+  sidebarCollapsed,
+  onToggleSidebar,
+  onOpenMobileSidebar,
+}) {
+  const { pathname } = useLocation();
+  const title = getPageTitle(pathname);
+
   return (
-    <header
-      style={{
-        height: "70px",
-        background: "#ffffff",
-        borderBottom: "1px solid #e5e7eb",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "0 30px",
-      }}
-    >
-      <div>
-        <h2
-          style={{
-            margin: 0,
-            color: "#111827",
-          }}
+    <header className="crm-header">
+      <div className="crm-header-left">
+        <button
+          type="button"
+          className="crm-sidebar-toggle crm-desktop-sidebar-toggle"
+          onClick={onToggleSidebar}
+          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          Dashboard
-        </h2>
+          {sidebarCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
+        </button>
 
-        <small
-          style={{
-            color: "#6b7280",
-          }}
+        <button
+          type="button"
+          className="crm-sidebar-toggle crm-mobile-sidebar-toggle"
+          onClick={onOpenMobileSidebar}
+          aria-label="Open navigation"
         >
-          Welcome to ServiceWise CRM
-        </small>
+          <FaBars />
+        </button>
+
+        <div className="crm-header-title">
+          <h1>{title}</h1>
+          <p>ServiceWise complaint management workspace</p>
+        </div>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "20px",
-        }}
-      >
-        <FaSearch size={18} />
+      <div className="crm-header-right" aria-label="Header actions">
+        <button type="button" className="crm-header-icon-button" aria-label="Search">
+          <FaSearch />
+        </button>
+        <button
+          type="button"
+          className="crm-header-icon-button"
+          aria-label="Notifications"
+        >
+          <FaBell />
+        </button>
 
-        <FaBell size={18} />
-
-        <FaUserCircle size={34} />
+        <div className="crm-header-user">
+          <div className="crm-header-avatar">AR</div>
+          <div>
+            <strong>Abdul Rasheed</strong>
+            <span>Administrator</span>
+          </div>
+        </div>
       </div>
     </header>
   );

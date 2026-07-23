@@ -1,0 +1,41 @@
+.analytics-dashboard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+.analytics-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.analytics-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.analytics-table th,
+.analytics-table td {
+  border: 1px solid var(--border);
+  padding: 15px 12px;
+  text-align: center;
+}
+
+.analytics-table th {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.analytics-table td {
+  color: var(--primary);
+  font-size: 26px;
+  font-weight: 800;
+}
