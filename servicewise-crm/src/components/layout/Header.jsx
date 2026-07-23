@@ -1,11 +1,24 @@
 import {
   FaBars,
   FaBell,
+  FaChevronDown,
   FaChevronLeft,
   FaChevronRight,
   FaSearch,
+  FaSignOutAlt,
 } from "react-icons/fa";
-import { useLocation } from "react-router-dom";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+
+import { useAuth } from "../../context/AuthContext";
 
 const titles = {
   "/dashboard": "Dashboard",
@@ -26,13 +39,67 @@ function getPageTitle(pathname) {
   return titles[pathname] || "ServiceWise CRM";
 }
 
+function getInitials(user) {
+  const source = user?.name || user?.email || "SW";
+  const words = String(source)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (words.length === 1) {
+    return words[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${words[0][0]}${words[words.length - 1][0]}`.toUpperCase();
+}
+
 export default function Header({
   sidebarCollapsed,
   onToggleSidebar,
   onOpenMobileSidebar,
 }) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const menuRef = useRef(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  const {
+    currentUser,
+    logout,
+    loading,
+  } = useAuth();
+
   const title = getPageTitle(pathname);
+  const initials = useMemo(
+    () => getInitials(currentUser),
+    [currentUser],
+  );
+
+  useEffect(() => {
+    setProfileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    function handleOutsideClick(event) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target)
+      ) {
+        setProfileOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsideClick);
+    };
+  }, []);
+
+  async function handleLogout() {
+    await logout();
+    navigate("/login", { replace: true });
+  }
 
   return (
     <header className="crm-header">
@@ -62,9 +129,14 @@ export default function Header({
       </div>
 
       <div className="crm-header-right" aria-label="Header actions">
-        <button type="button" className="crm-header-icon-button" aria-label="Search">
+        <button
+          type="button"
+          className="crm-header-icon-button"
+          aria-label="Search"
+        >
           <FaSearch />
         </button>
+
         <button
           type="button"
           className="crm-header-icon-button"
@@ -73,12 +145,53 @@ export default function Header({
           <FaBell />
         </button>
 
-        <div className="crm-header-user">
-          <div className="crm-header-avatar">AR</div>
-          <div>
-            <strong>Abdul Rasheed</strong>
-            <span>Administrator</span>
-          </div>
+        <div className="crm-profile-menu" ref={menuRef}>
+          <button
+            type="button"
+            className="crm-header-user-button"
+            onClick={() => setProfileOpen((current) => !current)}
+            aria-expanded={profileOpen}
+            aria-haspopup="menu"
+          >
+            <div className="crm-header-avatar">{initials}</div>
+
+            <div className="crm-header-user-copy">
+              <strong>
+                {currentUser?.name || currentUser?.email || "ServiceWise User"}
+              </strong>
+              <span>{currentUser?.role || "User"}</span>
+            </div>
+
+            <FaChevronDown className="crm-profile-chevron" />
+          </button>
+
+          {profileOpen && (
+            <div className="crm-profile-dropdown" role="menu">
+              <div className="crm-profile-dropdown-user">
+                <strong>
+                  {currentUser?.name || "ServiceWise User"}
+                </strong>
+                <span>{currentUser?.email || ""}</span>
+                <small>
+                  {currentUser?.role || "User"}
+                  {currentUser?.department
+                    ? ` · ${currentUser.department}`
+                    : ""}
+                </small>
+              </div>
+
+              <button
+                type="button"
+                className="crm-profile-logout"
+                onClick={handleLogout}
+                disabled={loading}
+                role="menuitem"
+              >
+                <FaSignOutAlt />
+                <span>{loading ? "Signing out…" : "Sign out"}</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

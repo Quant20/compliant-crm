@@ -16,41 +16,47 @@ const DEMO_PASSWORDS = {
 const normalize = (value) =>
   String(value || "").trim().toLowerCase();
 
-const createLocalUser = (user) => ({
-  ...user,
-  id: user.id || user.employeeId || user.employee_id,
-  employeeId:
-    user.employeeId || user.employee_id || String(user.id || ""),
-  name:
-    user.name ||
-    [user.firstName, user.lastName].filter(Boolean).join(" ") ||
-    user.email,
-  role: user.role || "Support Agent",
-  department: user.department || user.team || "Customer Support",
-});
+function createLocalUser(user) {
+  return {
+    ...user,
+    id: user.id || user.employeeId || user.employee_id,
+    employeeId:
+      user.employeeId || user.employee_id || String(user.id || ""),
+    name:
+      user.name ||
+      [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+      user.email,
+    role: user.role || "Support Agent",
+    department: user.department || user.team || "Customer Support",
+  };
+}
 
-const readJson = (key) => {
-  if (typeof window === "undefined") return null;
+function readStorage(storage, key) {
+  if (!storage) {
+    return null;
+  }
 
   try {
-    const value = window.localStorage.getItem(key);
+    const value = storage.getItem(key);
     return value ? JSON.parse(value) : null;
   } catch {
     return null;
   }
-};
+}
 
-const writeSession = (session, remember = true) => {
-  if (typeof window === "undefined") return;
+function writeSession(session, remember = true) {
+  if (typeof window === "undefined") {
+    return;
+  }
 
-  const target = remember
+  const targetStorage = remember
     ? window.localStorage
     : window.sessionStorage;
 
   window.localStorage.removeItem(SESSION_KEY);
   window.sessionStorage.removeItem(SESSION_KEY);
 
-  target.setItem(SESSION_KEY, JSON.stringify(session));
+  targetStorage.setItem(SESSION_KEY, JSON.stringify(session));
   window.localStorage.setItem(
     CURRENT_USER_KEY,
     JSON.stringify(session.user),
@@ -61,10 +67,12 @@ const writeSession = (session, remember = true) => {
       detail: session,
     }),
   );
-};
+}
 
-const clearSession = () => {
-  if (typeof window === "undefined") return;
+function clearSession() {
+  if (typeof window === "undefined") {
+    return;
+  }
 
   window.localStorage.removeItem(SESSION_KEY);
   window.sessionStorage.removeItem(SESSION_KEY);
@@ -75,9 +83,9 @@ const clearSession = () => {
       detail: null,
     }),
   );
-};
+}
 
-const mapSupabaseUser = (supabaseUser) => {
+function mapSupabaseUser(supabaseUser) {
   const metadata = supabaseUser?.user_metadata || {};
 
   return {
@@ -95,31 +103,43 @@ const mapSupabaseUser = (supabaseUser) => {
     phone: metadata.phone || "",
     role: metadata.role || "Support Agent",
     department:
-      metadata.department || metadata.team || "Customer Support",
+      metadata.department ||
+      metadata.team ||
+      "Customer Support",
     accountStatus:
-      metadata.accountStatus || metadata.account_status || "Active",
+      metadata.accountStatus ||
+      metadata.account_status ||
+      "Active",
   };
-};
+}
 
-export const getStoredSession = () => {
-  const localSession = readJson(SESSION_KEY);
-
-  if (localSession?.user) return localSession;
-
-  if (typeof window !== "undefined") {
-    try {
-      const sessionValue = window.sessionStorage.getItem(SESSION_KEY);
-      const session = sessionValue
-        ? JSON.parse(sessionValue)
-        : null;
-
-      if (session?.user) return session;
-    } catch {
-      // Ignore unavailable or damaged browser storage.
-    }
+export function getStoredSession() {
+  if (typeof window === "undefined") {
+    return null;
   }
 
-  const legacyUser = readJson(CURRENT_USER_KEY);
+  const localSession = readStorage(
+    window.localStorage,
+    SESSION_KEY,
+  );
+
+  if (localSession?.user) {
+    return localSession;
+  }
+
+  const temporarySession = readStorage(
+    window.sessionStorage,
+    SESSION_KEY,
+  );
+
+  if (temporarySession?.user) {
+    return temporarySession;
+  }
+
+  const legacyUser = readStorage(
+    window.localStorage,
+    CURRENT_USER_KEY,
+  );
 
   if (legacyUser) {
     return {
@@ -130,26 +150,34 @@ export const getStoredSession = () => {
   }
 
   return null;
-};
+}
 
-export const getCurrentUser = () =>
-  getStoredSession()?.user || null;
+export function getCurrentUser() {
+  return getStoredSession()?.user || null;
+}
 
-const loginWithLocalAccount = ({
+function loginWithLocalAccount({
   email,
   password,
   remember,
-}) => {
+}) {
   const identifier = normalize(email);
 
   const user = users.find((item) => {
-    return [item.email, item.username, item.employeeId, item.employee_id]
+    return [
+      item.email,
+      item.username,
+      item.employeeId,
+      item.employee_id,
+    ]
       .map(normalize)
       .includes(identifier);
   });
 
   if (!user) {
-    throw new Error("No ServiceWise account was found for this email or username.");
+    throw new Error(
+      "No ServiceWise account was found for this email, username, or employee ID.",
+    );
   }
 
   const expectedPassword =
@@ -162,10 +190,14 @@ const loginWithLocalAccount = ({
   const currentUser = createLocalUser(user);
 
   if (
-    normalize(currentUser.accountStatus || currentUser.account_status) ===
-    "inactive"
+    normalize(
+      currentUser.accountStatus ||
+        currentUser.account_status,
+    ) === "inactive"
   ) {
-    throw new Error("This account is inactive. Contact your administrator.");
+    throw new Error(
+      "This account is inactive. Contact your administrator.",
+    );
   }
 
   const session = {
@@ -176,15 +208,17 @@ const loginWithLocalAccount = ({
 
   writeSession(session, remember);
   return session;
-};
+}
 
-export const login = async ({
+export async function login({
   email,
   password,
   remember = true,
-}) => {
+}) {
   if (!String(email || "").trim()) {
-    throw new Error("Enter your email, username, or employee ID.");
+    throw new Error(
+      "Enter your email, username, or employee ID.",
+    );
   }
 
   if (!String(password || "")) {
@@ -193,7 +227,12 @@ export const login = async ({
 
   const identifier = normalize(email);
   const isKnownLocalAccount = users.some((item) => {
-    return [item.email, item.username, item.employeeId, item.employee_id]
+    return [
+      item.email,
+      item.username,
+      item.employeeId,
+      item.employee_id,
+    ]
       .map(normalize)
       .includes(identifier);
   });
@@ -224,9 +263,9 @@ export const login = async ({
 
   writeSession(session, remember);
   return session;
-};
+}
 
-export const logout = async () => {
+export async function logout() {
   try {
     if (isSupabaseConfigured) {
       await supabase.auth.signOut();
@@ -234,17 +273,24 @@ export const logout = async () => {
   } finally {
     clearSession();
   }
-};
+}
 
-export const refreshSession = async () => {
+export async function refreshSession() {
+  const storedSession = getStoredSession();
+
   if (!isSupabaseConfigured) {
-    return getStoredSession();
+    return storedSession;
   }
 
-  const { data } = await supabase.auth.getSession();
+  const { data, error } = await supabase.auth.getSession();
+
+  if (error) {
+    console.error("Unable to refresh Supabase authentication:", error);
+    return storedSession;
+  }
 
   if (!data.session?.user) {
-    return getStoredSession();
+    return storedSession;
   }
 
   const session = {
@@ -256,10 +302,12 @@ export const refreshSession = async () => {
 
   writeSession(session, true);
   return session;
-};
+}
 
-export const subscribeToAuthChanges = (callback) => {
-  if (typeof window === "undefined") return () => {};
+export function subscribeToAuthChanges(callback) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
 
   const handleCustomEvent = (event) => callback(event.detail);
   const handleStorage = () => callback(getStoredSession());
@@ -271,12 +319,13 @@ export const subscribeToAuthChanges = (callback) => {
 
   if (isSupabaseConfigured) {
     const { data } = supabase.auth.onAuthStateChange(
-      (_event, supabaseSession) => {
+      (eventName, supabaseSession) => {
         if (!supabaseSession?.user) {
-          if (_event === "SIGNED_OUT") {
+          if (eventName === "SIGNED_OUT") {
             clearSession();
             callback(null);
           }
+
           return;
         }
 
@@ -300,7 +349,7 @@ export const subscribeToAuthChanges = (callback) => {
     window.removeEventListener("storage", handleStorage);
     supabaseSubscription?.unsubscribe();
   };
-};
+}
 
 export const DEMO_ACCOUNTS = [
   {

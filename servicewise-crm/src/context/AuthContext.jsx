@@ -17,8 +17,21 @@ import {
 
 const AuthContext = createContext(null);
 
-const normalizeRole = (value) =>
-  String(value || "").trim().toLowerCase();
+function normalizeRole(value) {
+  const role = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  if (["administrator", "system administrator"].includes(role)) {
+    return "admin";
+  }
+
+  if (role === "agent") {
+    return "support agent";
+  }
+
+  return role;
+}
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(() => getStoredSession());
@@ -28,21 +41,32 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let active = true;
 
-    const initialize = async () => {
+    async function initializeAuthentication() {
       try {
-        const nextSession = await refreshSession();
-        if (active) setSession(nextSession);
-      } catch (initializationError) {
-        console.error("Unable to restore the authentication session:", initializationError);
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
+        const restoredSession = await refreshSession();
 
-    initialize();
+        if (active) {
+          setSession(restoredSession);
+        }
+      } catch (initializationError) {
+        console.error(
+          "Unable to restore the authentication session:",
+          initializationError,
+        );
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    initializeAuthentication();
 
     const unsubscribe = subscribeToAuthChanges((nextSession) => {
-      if (!active) return;
+      if (!active) {
+        return;
+      }
+
       setSession(nextSession);
       setLoading(false);
     });
@@ -88,20 +112,30 @@ export function AuthProvider({ children }) {
 
   const hasRole = useCallback(
     (...allowedRoles) => {
-      if (allowedRoles.length === 0) return true;
+      if (allowedRoles.length === 0) {
+        return true;
+      }
 
       const userRole = normalizeRole(session?.user?.role);
-      return allowedRoles.flat().map(normalizeRole).includes(userRole);
+      const normalizedAllowedRoles = allowedRoles
+        .flat()
+        .map(normalizeRole);
+
+      return normalizedAllowedRoles.includes(userRole);
     },
     [session],
   );
 
   const canAccess = useCallback(
     (allowedRoles = []) => {
-      if (!session?.user) return false;
+      if (!session?.user) {
+        return false;
+      }
+
       if (!Array.isArray(allowedRoles) || allowedRoles.length === 0) {
         return true;
       }
+
       return hasRole(allowedRoles);
     },
     [hasRole, session],
