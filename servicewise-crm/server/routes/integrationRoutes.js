@@ -1,0 +1,13 @@
+import { Router } from "express";
+import {
+  receiveEmailTicket,
+  receiveWhatsAppTicket,
+} from "../controllers/integrationController.js";
+import { requireApiKey } from "../middleware/authMiddleware.js";
+
+const router = Router();
+
+router.post("/email/import", requireApiKey, receiveEmailTicket);
+router.post("/whatsapp/webhook", receiveWhatsAppTicket);
+
+export default router;
