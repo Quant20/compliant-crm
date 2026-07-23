@@ -1,0 +1,105 @@
+@import "./variables.css";
+@import "./crmWorkspace.css";
+@import "./ui.css";
+@import "./dashboard.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--background, #f4f7fb);
+  color: var(--text, #172033);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  line-height: 1.5;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+.crm-mobile-sidebar-toggle {
+  display: none;
+}
+
+.crm-mobile-sidebar-backdrop {
+  display: none;
+}
+
+.crm-recovery-placeholder {
+  min-height: 280px;
+  padding: 36px;
+}
+
+.crm-recovery-placeholder h1 {
+  margin: 0 0 10px;
+  color: #10233f;
+  font-size: 30px;
+}
+
+.crm-recovery-placeholder > p:last-child {
+  max-width: 680px;
+  margin: 0;
+  color: #64748b;
+}
+
+.crm-recovery-eyebrow {
+  margin: 0 0 8px;
+  color: #087f73;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+@media (max-width: 900px) {
+  .crm-desktop-sidebar-toggle {
+    display: none;
+  }
+
+  .crm-mobile-sidebar-toggle {
+    display: inline-flex;
+  }
+
+  .crm-mobile-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 290;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: rgba(15, 23, 42, 0.45);
+  }
+}

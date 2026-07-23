@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import {
-  FaBookOpen,
+  FaBook,
   FaChartBar,
   FaCog,
   FaTachometerAlt,
@@ -40,9 +40,9 @@ const menuItems = [
     adminOnly: true,
   },
   {
-    name: "Help Center",
-    path: "/help-center",
-    icon: FaBookOpen,
+    name: "Knowledge Base",
+    path: "/knowledge-base",
+    icon: FaBook,
   },
   {
     name: "Reports",

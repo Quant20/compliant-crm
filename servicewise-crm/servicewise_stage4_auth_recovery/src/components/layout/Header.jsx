@@ -26,8 +26,7 @@ const titles = {
   "/whatsapp-inbox": "WhatsApp Inbox",
   "/customers": "Customers",
   "/agents": "Agents",
-  "/help-center": "Help Center",
-  "/knowledge-base": "Help Center",
+  "/knowledge-base": "Knowledge Base",
   "/reports": "Reports",
   "/settings": "Settings",
 };
@@ -109,15 +108,9 @@ export default function Header({
           type="button"
           className="crm-sidebar-toggle crm-desktop-sidebar-toggle"
           onClick={onToggleSidebar}
-          aria-label={
-            sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
-          }
+          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {sidebarCollapsed ? (
-            <FaChevronRight />
-          ) : (
-            <FaChevronLeft />
-          )}
+          {sidebarCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
         </button>
 
         <button
@@ -156,9 +149,7 @@ export default function Header({
           <button
             type="button"
             className="crm-header-user-button"
-            onClick={() =>
-              setProfileOpen((current) => !current)
-            }
+            onClick={() => setProfileOpen((current) => !current)}
             aria-expanded={profileOpen}
             aria-haspopup="menu"
           >
@@ -166,9 +157,7 @@ export default function Header({
 
             <div className="crm-header-user-copy">
               <strong>
-                {currentUser?.name ||
-                  currentUser?.email ||
-                  "ServiceWise User"}
+                {currentUser?.name || currentUser?.email || "ServiceWise User"}
               </strong>
               <span>{currentUser?.role || "User"}</span>
             </div>
@@ -199,9 +188,7 @@ export default function Header({
                 role="menuitem"
               >
                 <FaSignOutAlt />
-                <span>
-                  {loading ? "Signing out…" : "Sign out"}
-                </span>
+                <span>{loading ? "Signing out…" : "Sign out"}</span>
               </button>
             </div>
           )}
