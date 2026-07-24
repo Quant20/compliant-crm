@@ -1,0 +1,251 @@
+.customers-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.customers-page__header h2,
+.agents-page__header h2,
+.knowledge-page__header h2,
+.reports-page__header h2,
+.settings-page__header h2 {
+  margin: 0;
+  color: var(--crm-navy, #10233f);
+  font-size: 28px;
+}
+
+.customers-page__header p,
+.agents-page__header p,
+.knowledge-page__header p,
+.reports-page__header p,
+.settings-page__header p {
+  margin: 6px 0 0;
+  color: var(--text-muted, #64748b);
+}
+
+.page-eyebrow {
+  margin: 0 0 6px !important;
+  color: var(--primary, #0f766e) !important;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.customers-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.customers-summary-grid article {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.customers-summary-grid svg {
+  width: 22px;
+  height: 22px;
+  padding: 12px;
+  box-sizing: content-box;
+  border-radius: 12px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.customers-summary-grid span,
+.customers-summary-grid strong {
+  display: block;
+}
+
+.customers-summary-grid span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.customers-summary-grid strong {
+  margin-top: 4px;
+  color: var(--crm-navy, #10233f);
+  font-size: 26px;
+}
+
+.customers-panel {
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.customers-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.customers-toolbar h3,
+.customers-toolbar p {
+  margin: 0;
+}
+
+.customers-toolbar h3 {
+  color: var(--crm-navy, #10233f);
+}
+
+.customers-toolbar p {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.customers-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: min(360px, 100%);
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--text-muted);
+}
+
+.customers-search:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
+
+.customers-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+
+.customer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.customer-card {
+  display: flex;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.customer-card__avatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 800;
+}
+
+.customer-card__body {
+  min-width: 0;
+}
+
+.customer-card h3,
+.customer-card p {
+  margin: 0;
+}
+
+.customer-card h3 {
+  overflow: hidden;
+  color: var(--crm-navy, #10233f);
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customer-card p {
+  margin-top: 5px;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customer-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.customer-card__stats span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e8f6f3;
+  color: #087f73;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.customer-card small {
+  display: block;
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.customers-empty-state {
+  display: grid;
+  justify-items: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.customers-empty-state svg {
+  font-size: 30px;
+}
+
+.customers-empty-state h3 {
+  margin: 14px 0 5px;
+  color: var(--crm-navy, #10233f);
+}
+
+.customers-empty-state p {
+  margin: 0;
+}
+
+@media (max-width: 1050px) {
+  .customer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .customers-summary-grid,
+  .customer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .customers-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .customers-search {
+    width: 100%;
+  }
+}
