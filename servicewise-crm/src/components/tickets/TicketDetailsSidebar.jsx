@@ -1,4 +1,9 @@
 import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
   FaChevronDown,
   FaClock,
   FaDatabase,
@@ -13,6 +18,11 @@ import {
 } from "react-icons/fa";
 
 import { useNavigate } from "react-router-dom";
+
+import {
+  formatSlaDeadline,
+  getSlaStatus,
+} from "../../services/slaService";
 
 import "./TicketDetailsSidebar.css";
 
@@ -238,6 +248,22 @@ export default function TicketDetailsSidebar({
 }) {
   const navigate = useNavigate();
 
+  const [currentTime, setCurrentTime] =
+    useState(Date.now());
+
+  useEffect(() => {
+    setCurrentTime(Date.now());
+
+    const intervalId =
+      window.setInterval(() => {
+        setCurrentTime(Date.now());
+      }, 60000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [ticket?.id]);
+
   const channel = normalizeChannel(ticket);
 
   const messages =
@@ -344,21 +370,27 @@ export default function TicketDetailsSidebar({
             customerPhone,
           );
 
-  const slaBreached = Boolean(
-    ticket?.sla?.breached ||
-      ticket?.sla_breached,
+  const slaStatus = getSlaStatus(
+    ticket,
+    currentTime,
   );
 
-  const slaNearDue = Boolean(
-    ticket?.sla?.nearDue ||
-      ticket?.sla_near_due,
-  );
+  const slaBreached =
+    slaStatus.breached;
 
-  const slaTone = slaBreached
-    ? "danger"
-    : slaNearDue
-      ? "warning"
-      : "success";
+  const slaNearDue =
+    slaStatus.nearDue;
+
+  const slaTone =
+    slaStatus.tone;
+
+  const slaTimeRemaining =
+    slaStatus.label;
+
+  const slaDeadline =
+    formatSlaDeadline(
+      slaStatus.dueTimestamp,
+    );
 
   const tags = Array.isArray(ticket?.tags)
     ? ticket.tags.join(", ")
