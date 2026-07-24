@@ -46,9 +46,9 @@
 }
 
 .sw-analytics-row {
-  min-width: 790px;
+  min-width: 570px;
   display: grid;
-  grid-template-columns: repeat(7, minmax(110px, 1fr));
+  grid-template-columns: repeat(5, minmax(110px, 1fr));
 }
 
 .sw-analytics-cell {
@@ -78,4 +78,11 @@
   color: #0f4c65;
   font-size: 27px;
   line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .sw-analytics-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }

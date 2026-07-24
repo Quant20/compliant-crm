@@ -44,6 +44,19 @@ function ticketCustomerName(ticket) {
   );
 }
 
+function formatLabel(value) {
+  const text = String(value || "").trim();
+
+  if (!text) {
+    return "Uncategorised";
+  }
+
+  return text
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 export function getDashboardStats(tickets = []) {
   const list = Array.isArray(tickets) ? tickets : [];
 
@@ -89,13 +102,85 @@ export function getDashboardStats(tickets = []) {
     }
   });
 
-  const completed = stats.resolved;
   stats.resolutionRate =
     stats.total > 0
-      ? Math.round((completed / stats.total) * 100)
+      ? Math.round((stats.resolved / stats.total) * 100)
       : 0;
 
   return stats;
+}
+
+export function getPriorityBreakdown(tickets = []) {
+  const counts = {
+    critical: 0,
+    high: 0,
+    medium: 0,
+    low: 0,
+  };
+
+  (Array.isArray(tickets) ? tickets : []).forEach((ticket) => {
+    const priority = clean(ticket?.priority);
+
+    if (Object.prototype.hasOwnProperty.call(counts, priority)) {
+      counts[priority] += 1;
+    } else {
+      counts.medium += 1;
+    }
+  });
+
+  const total = Object.values(counts).reduce(
+    (sum, value) => sum + value,
+    0,
+  );
+
+  return [
+    { key: "critical", label: "Critical", value: counts.critical },
+    { key: "high", label: "High", value: counts.high },
+    { key: "medium", label: "Medium", value: counts.medium },
+    { key: "low", label: "Low", value: counts.low },
+  ].map((item) => ({
+    ...item,
+    percentage:
+      total > 0 ? Math.round((item.value / total) * 100) : 0,
+  }));
+}
+
+export function getCategoryBreakdown(tickets = []) {
+  const counts = new Map();
+
+  (Array.isArray(tickets) ? tickets : []).forEach((ticket) => {
+    const rawCategory =
+      ticket?.category ||
+      ticket?.complaintCategory ||
+      ticket?.complaint_category ||
+      ticket?.issueCategory ||
+      ticket?.issue_category ||
+      "Uncategorised";
+
+    const label = formatLabel(rawCategory);
+    counts.set(label, (counts.get(label) || 0) + 1);
+  });
+
+  const total = Array.from(counts.values()).reduce(
+    (sum, value) => sum + value,
+    0,
+  );
+
+  return Array.from(counts.entries())
+    .map(([label, value]) => ({
+      key: clean(label).replace(/\s+/g, "-"),
+      label,
+      value,
+      percentage:
+        total > 0 ? Math.round((value / total) * 100) : 0,
+    }))
+    .sort((first, second) => {
+      if (second.value !== first.value) {
+        return second.value - first.value;
+      }
+
+      return first.label.localeCompare(second.label);
+    });
 }
 
 export function getRecentTickets(tickets = [], limit = 6) {

@@ -1,19 +1,17 @@
 import { useMemo, useState } from "react";
-import {
-  FaPlus,
-  FaSyncAlt,
-} from "react-icons/fa";
+import { FaPlus, FaSyncAlt } from "react-icons/fa";
 
 import AnalyticsDashboard from "../../components/dashboard/AnalyticsDashboard";
-import KPIGrid from "../../components/dashboard/KPIGrid";
-import QuickActions from "../../components/dashboard/QuickActions";
+import DashboardBreakdowns from "../../components/dashboard/DashboardBreakdowns";
 import RecentActivity from "../../components/dashboard/RecentActivity";
 import RecentTickets from "../../components/dashboard/RecentTickets";
 import CreateTicketModal from "../../components/tickets/CreateTicketModal";
 import { useAuth } from "../../context/AuthContext";
 import { useTickets } from "../../context/TicketContext";
 import {
+  getCategoryBreakdown,
   getDashboardStats,
+  getPriorityBreakdown,
   getRecentActivities,
   getRecentTickets,
 } from "../../data/dashboardData";
@@ -28,14 +26,24 @@ export default function Dashboard() {
     dataSource,
     loadTickets,
   } = useTickets();
+
   const { currentUser } = useAuth();
 
-  const [createTicketOpen, setCreateTicketOpen] =
-    useState(false);
+  const [createTicketOpen, setCreateTicketOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const stats = useMemo(
     () => getDashboardStats(tickets),
+    [tickets],
+  );
+
+  const priorityBreakdown = useMemo(
+    () => getPriorityBreakdown(tickets),
+    [tickets],
+  );
+
+  const categoryBreakdown = useMemo(
+    () => getCategoryBreakdown(tickets),
     [tickets],
   );
 
@@ -120,13 +128,14 @@ export default function Dashboard() {
 
       <AnalyticsDashboard stats={stats} />
 
-      <KPIGrid stats={stats} loading={loading} />
+      <DashboardBreakdowns
+        priorityItems={priorityBreakdown}
+        categoryItems={categoryBreakdown}
+        loading={loading}
+      />
 
       <div className="sw-dashboard-main-grid">
         <RecentTickets tickets={recentTickets} />
-        <QuickActions
-          onCreateTicket={() => setCreateTicketOpen(true)}
-        />
       </div>
 
       <RecentActivity activities={recentActivities} />

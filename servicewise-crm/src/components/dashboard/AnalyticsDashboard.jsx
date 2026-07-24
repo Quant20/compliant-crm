@@ -7,8 +7,6 @@ export default function AnalyticsDashboard({ stats }) {
     ["In progress", stats.inProgress],
     ["Pending", stats.pending],
     ["Resolved", stats.resolved],
-    ["High priority", stats.highPriority],
-    ["Unassigned", stats.unassigned],
   ];
 
   return (

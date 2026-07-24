@@ -127,7 +127,7 @@
 
 .sw-dashboard-main-grid {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(280px, 0.85fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 22px;
 }

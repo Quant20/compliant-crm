@@ -1,0 +1,135 @@
+.sw-breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.sw-breakdown-panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.sw-breakdown-header {
+  padding: 17px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sw-breakdown-header h3 {
+  margin: 0;
+  color: #10233f;
+  font-size: 17px;
+}
+
+.sw-breakdown-header p {
+  margin: 3px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.sw-breakdown-list {
+  display: grid;
+  gap: 17px;
+  padding: 19px 20px 21px;
+}
+
+.sw-breakdown-item {
+  min-width: 0;
+}
+
+.sw-breakdown-item-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sw-breakdown-label {
+  overflow: hidden;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sw-breakdown-item-heading strong {
+  color: #10233f;
+  font-size: 14px;
+}
+
+.sw-breakdown-track {
+  height: 8px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf2f7;
+}
+
+.sw-breakdown-fill {
+  min-width: 0;
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: #0f766e;
+  transition: width 250ms ease;
+}
+
+.sw-breakdown-item small {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-light);
+  font-size: 10px;
+}
+
+.sw-breakdown-fill--priority-critical {
+  background: #dc2626;
+}
+
+.sw-breakdown-fill--priority-high {
+  background: #ea580c;
+}
+
+.sw-breakdown-fill--priority-medium {
+  background: #d6a400;
+}
+
+.sw-breakdown-fill--priority-low {
+  background: #16a34a;
+}
+
+.sw-breakdown-fill--category-payment,
+.sw-breakdown-fill--category-payments {
+  background: #2563eb;
+}
+
+.sw-breakdown-fill--category-account,
+.sw-breakdown-fill--category-kyc,
+.sw-breakdown-fill--category-account-kyc {
+  background: #7c3aed;
+}
+
+.sw-breakdown-fill--category-technical,
+.sw-breakdown-fill--category-system {
+  background: #0891b2;
+}
+
+.sw-breakdown-fill--category-refund,
+.sw-breakdown-fill--category-settlement {
+  background: #db2777;
+}
+
+.sw-breakdown-empty {
+  padding: 34px 20px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .sw-breakdown-grid {
+    grid-template-columns: 1fr;
+  }
+}
