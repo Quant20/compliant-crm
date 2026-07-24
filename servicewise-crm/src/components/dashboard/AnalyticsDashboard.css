@@ -46,9 +46,9 @@
 }
 
 .sw-analytics-row {
-  min-width: 570px;
+  min-width: 920px;
   display: grid;
-  grid-template-columns: repeat(5, minmax(110px, 1fr));
+  grid-template-columns: repeat(8, minmax(110px, 1fr));
 }
 
 .sw-analytics-cell {
@@ -86,3 +86,33 @@
     flex-direction: column;
   }
 }
+
+/* SLA ANALYTICS TONES */
+
+.sw-analytics-cell--success {
+  background: #ecfdf3;
+}
+
+.sw-analytics-cell--success span,
+.sw-analytics-cell--success strong {
+  color: #067647;
+}
+
+.sw-analytics-cell--warning {
+  background: #fffaeb;
+}
+
+.sw-analytics-cell--warning span,
+.sw-analytics-cell--warning strong {
+  color: #b54708;
+}
+
+.sw-analytics-cell--danger {
+  background: #fef3f2;
+}
+
+.sw-analytics-cell--danger span,
+.sw-analytics-cell--danger strong {
+  color: #b42318;
+}
+

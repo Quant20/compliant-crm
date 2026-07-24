@@ -1,3 +1,7 @@
+import {
+  getSlaStatus,
+} from "../services/slaService";
+
 const OPEN_STATUSES = new Set(["open", "new"]);
 const IN_PROGRESS_STATUSES = new Set([
   "in progress",
@@ -68,6 +72,10 @@ export function getDashboardStats(tickets = []) {
     resolved: 0,
     highPriority: 0,
     unassigned: 0,
+    slaWithin: 0,
+    slaNearDue: 0,
+    slaBreached: 0,
+    slaNotSet: 0,
   };
 
   list.forEach((ticket) => {
@@ -78,6 +86,9 @@ export function getDashboardStats(tickets = []) {
       ticket?.assignedAgentName ||
       ticket?.assigned_agent_name,
     );
+
+    const slaStatus =
+      getSlaStatus(ticket);
 
     if (OPEN_STATUSES.has(status)) {
       stats.open += 1;
@@ -99,6 +110,22 @@ export function getDashboardStats(tickets = []) {
       assignedAgent === "none"
     ) {
       stats.unassigned += 1;
+    }
+
+    if (slaStatus.state === "within-sla") {
+      stats.slaWithin += 1;
+    } else if (
+      slaStatus.state === "near-due"
+    ) {
+      stats.slaNearDue += 1;
+    } else if (
+      slaStatus.state === "breached"
+    ) {
+      stats.slaBreached += 1;
+    } else if (
+      slaStatus.state === "unknown"
+    ) {
+      stats.slaNotSet += 1;
     }
   });
 
