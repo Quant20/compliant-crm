@@ -740,3 +740,139 @@ flex: 1;
 .ticket-action button{
     cursor:pointer;
 }
+
+/* CUSTOMER RECORD LINKING */
+
+.create-ticket-customer-mode {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 5px;
+  border: 1px solid #dbe6ed;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.create-ticket-customer-mode button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.create-ticket-customer-mode button:hover:not(:disabled) {
+  background: #ffffff;
+  color: #0b5a8f;
+}
+
+.create-ticket-customer-mode button.active {
+  border-color: #0f766e;
+  background: #0f766e;
+  color: #ffffff;
+  box-shadow:
+    0 3px 10px rgba(15, 118, 110, 0.16);
+}
+
+.create-ticket-customer-mode button span {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 9px;
+}
+
+.create-ticket-customer-mode button:not(.active) span {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.create-ticket-customer-mode button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.create-ticket-customer-select {
+  margin-bottom: 14px;
+}
+
+.create-ticket-selected-customer {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid #d7e5eb;
+  border-radius: 10px;
+  background: #f6fbfa;
+}
+
+.create-ticket-selected-customer > div {
+  min-width: 0;
+  padding: 13px 14px;
+  border-right: 1px solid #e0ecea;
+  border-bottom: 1px solid #e0ecea;
+}
+
+.create-ticket-selected-customer > div:nth-child(2n) {
+  border-right: 0;
+}
+
+.create-ticket-selected-customer > div:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+.create-ticket-selected-customer span,
+.create-ticket-selected-customer strong {
+  display: block;
+}
+
+.create-ticket-selected-customer span {
+  margin-bottom: 4px;
+  color: #64748b;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.create-ticket-selected-customer strong {
+  overflow-wrap: anywhere;
+  color: #1e293b;
+  font-size: 11px;
+}
+
+@media (max-width: 640px) {
+  .create-ticket-customer-mode {
+    flex-direction: column;
+  }
+
+  .create-ticket-customer-mode button {
+    width: 100%;
+  }
+
+  .create-ticket-selected-customer {
+    grid-template-columns: 1fr;
+  }
+
+  .create-ticket-selected-customer > div,
+  .create-ticket-selected-customer > div:nth-child(2n),
+  .create-ticket-selected-customer > div:nth-last-child(-n + 2) {
+    border-right: 0;
+    border-bottom: 1px solid #e0ecea;
+  }
+
+  .create-ticket-selected-customer > div:last-child {
+    border-bottom: 0;
+  }
+}

@@ -5,7 +5,10 @@ import {
   useState,
 } from "react";
 
-import { useNavigate } from "react-router-dom";
+import {
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 
 import { useTickets } from "../../context/TicketContext";
 
@@ -133,6 +136,17 @@ const getTicketView = (ticket) => {
 export default function Tickets() {
   const navigate = useNavigate();
 
+  const [
+    searchParams,
+    setSearchParams,
+  ] = useSearchParams();
+
+  const requestedCustomerId =
+    searchParams.get("customerId") || "";
+
+  const createTicketRequested =
+    searchParams.get("create") === "1";
+
   const {
     tickets = [],
     loading = false,
@@ -171,6 +185,38 @@ export default function Tickets() {
     showCreateTicket,
     setShowCreateTicket,
   ] = useState(false);
+
+  useEffect(() => {
+    if (createTicketRequested) {
+      setShowCreateTicket(true);
+    }
+  }, [createTicketRequested]);
+
+  const closeCreateTicketModal = () => {
+    setShowCreateTicket(false);
+
+    if (
+      createTicketRequested ||
+      requestedCustomerId
+    ) {
+      const nextParams =
+        new URLSearchParams(
+          searchParams,
+        );
+
+      nextParams.delete("create");
+      nextParams.delete(
+        "customerId",
+      );
+
+      setSearchParams(
+        nextParams,
+        {
+          replace: true,
+        },
+      );
+    }
+  };
 
   const [refreshing, setRefreshing] =
     useState(false);
@@ -1076,8 +1122,11 @@ export default function Tickets() {
 
       <CreateTicketModal
         open={showCreateTicket}
-        onClose={() =>
-          setShowCreateTicket(false)
+        initialCustomerId={
+          requestedCustomerId
+        }
+        onClose={
+          closeCreateTicketModal
         }
       />
     </div>

@@ -1,0 +1,225 @@
+.customer-interaction-overlay {
+  position: fixed;
+  z-index: 5100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.64);
+  backdrop-filter: blur(3px);
+}
+
+.customer-interaction-modal {
+  width: min(690px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border: 1px solid #d9e4ec;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow:
+    0 24px 70px rgba(15, 23, 42, 0.28);
+}
+
+.customer-interaction-header {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 22px;
+  border-bottom: 1px solid #e3ebf1;
+  background:
+    linear-gradient(
+      135deg,
+      #f3f9fc,
+      #f1fbf8
+    );
+}
+
+.customer-interaction-header span {
+  display: block;
+  margin-bottom: 4px;
+  color: #0f766e;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.customer-interaction-header h2 {
+  margin: 0;
+  color: #0b4f79;
+  font-size: 22px;
+}
+
+.customer-interaction-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.customer-interaction-close {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #d7e1e9;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.customer-interaction-form {
+  padding: 20px 22px 22px;
+}
+
+.customer-interaction-error {
+  margin-bottom: 15px;
+  padding: 11px 13px;
+  border: 1px solid #fecaca;
+  border-radius: 9px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.customer-interaction-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 15px 16px;
+}
+
+.customer-interaction-field {
+  min-width: 0;
+}
+
+.customer-interaction-full {
+  grid-column: 1 / -1;
+}
+
+.customer-interaction-field label {
+  display: block;
+  margin-bottom: 6px;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.customer-interaction-field label span {
+  margin-left: 3px;
+  color: #dc2626;
+}
+
+.customer-interaction-field input,
+.customer-interaction-field select,
+.customer-interaction-field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid #cfdbe4;
+  border-radius: 8px;
+  outline: none;
+  background: #ffffff;
+  color: #172033;
+  font: inherit;
+  font-size: 12px;
+}
+
+.customer-interaction-field input,
+.customer-interaction-field select {
+  min-height: 41px;
+}
+
+.customer-interaction-field textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.customer-interaction-field input:focus,
+.customer-interaction-field select:focus,
+.customer-interaction-field textarea:focus {
+  border-color: #0f766e;
+  box-shadow:
+    0 0 0 3px rgba(15, 118, 110, 0.11);
+}
+
+.customer-interaction-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 17px;
+  border-top: 1px solid #e5edf3;
+}
+
+.customer-interaction-actions button {
+  min-height: 40px;
+  padding: 9px 17px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.customer-interaction-cancel {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+}
+
+.customer-interaction-save {
+  border: 1px solid #0f766e;
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.customer-interaction-save:hover {
+  background: #0b625c;
+}
+
+.customer-interaction-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .customer-interaction-overlay {
+    align-items: start;
+    padding: 10px;
+  }
+
+  .customer-interaction-modal {
+    max-height: calc(100vh - 20px);
+  }
+
+  .customer-interaction-header,
+  .customer-interaction-form {
+    padding: 16px;
+  }
+
+  .customer-interaction-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-interaction-full {
+    grid-column: auto;
+  }
+
+  .customer-interaction-actions {
+    flex-direction: column-reverse;
+  }
+
+  .customer-interaction-actions button {
+    width: 100%;
+  }
+}

@@ -4,9 +4,28 @@ import {
   useState,
 } from "react";
 
-import { useNavigate } from "react-router-dom";
+import {
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 
 import { useTickets } from "../../context/TicketContext";
+
+import CustomerFormModal from "../../components/customers/CustomerFormModal";
+
+import CustomerInteractionModal from "../../components/customers/CustomerInteractionModal";
+
+import {
+  createCustomer,
+  findExistingCustomer,
+  getCustomers,
+  updateCustomer,
+} from "../../services/customerService";
+
+import {
+  createCustomerActivity,
+  getCustomerActivities,
+} from "../../services/customerActivityService";
 
 import "./Customers.css";
 
@@ -187,6 +206,11 @@ function getEventTypeLabel(type) {
     priority: "Priority",
     task: "Task",
     meeting: "Meeting",
+    whatsapp: "WhatsApp",
+    sms: "SMS",
+    portal: "Portal",
+    customer: "Customer",
+    note: "Internal Note",
   };
 
   return labels[type] || "Activity";
@@ -478,6 +502,285 @@ function createCustomerRecords(tickets) {
     );
 }
 
+function normalizeCustomerEmail(value) {
+  return cleanValue(value).toLowerCase();
+}
+
+function normalizeCustomerPhone(value) {
+  return cleanValue(value).replace(/\D/g, "");
+}
+
+function customersMatch(
+  ticketCustomer,
+  storedCustomer,
+) {
+  const ticketEmail =
+    normalizeCustomerEmail(
+      ticketCustomer.email,
+    );
+
+  const storedEmail =
+    normalizeCustomerEmail(
+      storedCustomer.email,
+    );
+
+  const ticketPhone =
+    normalizeCustomerPhone(
+      ticketCustomer.phone,
+    );
+
+  const storedPhone =
+    normalizeCustomerPhone(
+      storedCustomer.phone,
+    );
+
+  return Boolean(
+    (ticketEmail &&
+      storedEmail &&
+      ticketEmail === storedEmail) ||
+      (ticketPhone &&
+        storedPhone &&
+        ticketPhone === storedPhone),
+  );
+}
+
+function mergeCustomerRecords(
+  ticketCustomers,
+  storedCustomers,
+) {
+  const usedTicketKeys = new Set();
+
+  const storedRecords = storedCustomers.map(
+    (storedCustomer) => {
+      const ticketCustomer =
+        ticketCustomers.find(
+          (candidate) =>
+            !usedTicketKeys.has(
+              candidate.key,
+            ) &&
+            customersMatch(
+              candidate,
+              storedCustomer,
+            ),
+        );
+
+      if (ticketCustomer) {
+        usedTicketKeys.add(
+          ticketCustomer.key,
+        );
+
+        return {
+          ...ticketCustomer,
+          ...storedCustomer,
+
+          key: ticketCustomer.key,
+
+          storageId:
+            storedCustomer.id,
+
+          customerId:
+            storedCustomer.customerNumber ||
+            ticketCustomer.customerId,
+
+          tickets:
+            ticketCustomer.tickets,
+
+          totalTickets:
+            ticketCustomer.totalTickets,
+
+          openTickets:
+            ticketCustomer.openTickets,
+
+          closedTickets:
+            ticketCustomer.closedTickets,
+
+          totalInteractions:
+            ticketCustomer.totalInteractions,
+
+          lastContact:
+            ticketCustomer.lastContact ||
+            storedCustomer.updatedAt ||
+            storedCustomer.createdAt,
+        };
+      }
+
+      return {
+        ...storedCustomer,
+
+        key: `stored:${storedCustomer.id}`,
+
+        storageId:
+          storedCustomer.id,
+
+        customerId:
+          storedCustomer.customerNumber ||
+          "Not available",
+
+        walletId:
+          storedCustomer.walletId ||
+          "Not available",
+
+        retailerId:
+          storedCustomer.retailerId ||
+          "Not available",
+
+        cnic:
+          storedCustomer.cnic ||
+          "Not available",
+
+        city:
+          storedCustomer.city ||
+          "Not available",
+
+        tickets: [],
+
+        totalTickets: 0,
+
+        openTickets: 0,
+
+        closedTickets: 0,
+
+        totalInteractions: 0,
+
+        lastContact:
+          storedCustomer.updatedAt ||
+          storedCustomer.createdAt ||
+          "",
+      };
+    },
+  );
+
+  const unmatchedTicketCustomers =
+    ticketCustomers
+      .filter(
+        (customer) =>
+          !usedTicketKeys.has(customer.key),
+      )
+      .map((customer) => ({
+        ...customer,
+        storageId: "",
+      }));
+
+  return [
+    ...storedRecords,
+    ...unmatchedTicketCustomers,
+  ].sort(
+    (firstCustomer, secondCustomer) =>
+      toTimestamp(
+        secondCustomer.lastContact,
+      ) -
+      toTimestamp(
+        firstCustomer.lastContact,
+      ),
+  );
+}
+
+function buildCustomerActivityEvents(
+  activities,
+  customer,
+) {
+  if (!customer) {
+    return [];
+  }
+
+  const customerId =
+    customer.storageId ||
+    customer.id;
+
+  if (!customerId) {
+    return [];
+  }
+
+  return activities
+    .filter(
+      (activity) =>
+        String(activity.customerId) ===
+        String(customerId),
+    )
+    .map((activity) => ({
+      id: activity.id,
+
+      type:
+        activity.type ||
+        "activity",
+
+      title:
+        activity.title ||
+        "Customer interaction",
+
+      detail: [
+        activity.details,
+        activity.outcome
+          ? `Outcome: ${activity.outcome}`
+          : "",
+        activity.duration
+          ? `Duration: ${activity.duration}`
+          : "",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+
+      date: activity.createdAt,
+
+      timestamp:
+        toTimestamp(
+          activity.createdAt,
+        ),
+
+      ticketId: "",
+
+      ticketNumber: "",
+
+      user:
+        activity.agent ||
+        "Support Agent",
+
+      channel:
+        activity.channel ||
+        activity.type ||
+        "Customer interaction",
+    }));
+}
+
+function buildCustomerProfileEvent(
+  customer,
+) {
+  if (!customer?.createdAt) {
+    return [];
+  }
+
+  return [
+    {
+      id: `customer-created-${
+        customer.storageId ||
+        customer.id
+      }`,
+
+      type: "customer",
+
+      title: "Customer profile created",
+
+      detail:
+        "Customer record added to ServiceWise CRM.",
+
+      date: customer.createdAt,
+
+      timestamp:
+        toTimestamp(
+          customer.createdAt,
+        ),
+
+      ticketId: "",
+
+      ticketNumber: "",
+
+      user: "System",
+
+      channel: "Customer record",
+    },
+  ];
+}
+
 function CustomerAvatar({ name }) {
   const initials = cleanValue(name)
     .split(/\s+/)
@@ -561,14 +864,23 @@ function JourneyTimeline({
                 By {event.user || "System"}
               </span>
 
-              <button
-                type="button"
-                onClick={() =>
-                  onOpenTicket(event.ticketId)
-                }
-              >
-                {event.ticketNumber}
-              </button>
+              {event.ticketId ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onOpenTicket(
+                      event.ticketId,
+                    )
+                  }
+                >
+                  {event.ticketNumber}
+                </button>
+              ) : (
+                <span className="cw-event-channel">
+                  {event.channel ||
+                    "Customer record"}
+                </span>
+              )}
             </div>
           </div>
         </article>
@@ -579,6 +891,15 @@ function JourneyTimeline({
 
 export default function Customers() {
   const navigate = useNavigate();
+
+  const [searchParams] =
+    useSearchParams();
+
+  const requestedCustomerIdentifier =
+    cleanValue(
+      searchParams.get("customerId") ||
+        searchParams.get("customer"),
+    );
 
   const {
     tickets = [],
@@ -600,10 +921,103 @@ export default function Customers() {
   const [activeTab, setActiveTab] =
     useState("customer-journey");
 
-  const customers = useMemo(
+  const [
+    storedCustomers,
+    setStoredCustomers,
+  ] = useState(() => getCustomers());
+
+  const [
+    customerModal,
+    setCustomerModal,
+  ] = useState({
+    open: false,
+    mode: "create",
+    customer: null,
+  });
+
+
+  const [
+    customerActivities,
+    setCustomerActivities,
+  ] = useState(
+    () => getCustomerActivities(),
+  );
+
+  const [
+    interactionModalOpen,
+    setInteractionModalOpen,
+  ] = useState(false);
+
+  const ticketCustomerRecords = useMemo(
     () => createCustomerRecords(tickets),
     [tickets],
   );
+
+  const customers = useMemo(
+    () =>
+      mergeCustomerRecords(
+        ticketCustomerRecords,
+        storedCustomers,
+      ),
+    [
+      ticketCustomerRecords,
+      storedCustomers,
+    ],
+  );
+
+  useEffect(() => {
+    if (
+      !requestedCustomerIdentifier ||
+      customers.length === 0
+    ) {
+      return;
+    }
+
+    const normalizedIdentifier =
+      requestedCustomerIdentifier
+        .toLowerCase()
+        .replace(/\s+/g, "");
+
+    const matchingCustomer =
+      customers.find((customer) => {
+        const possibleValues = [
+          customer.id,
+          customer.storageId,
+          customer.customerId,
+          customer.customerNumber,
+          customer.email,
+          customer.phone,
+          customer.walletId,
+          customer.retailerId,
+        ];
+
+        return possibleValues.some(
+          (value) =>
+            cleanValue(value)
+              .toLowerCase()
+              .replace(/\s+/g, "") ===
+            normalizedIdentifier,
+        );
+      });
+
+    if (
+      matchingCustomer &&
+      matchingCustomer.key !==
+        selectedCustomerKey
+    ) {
+      setSelectedCustomerKey(
+        matchingCustomer.key,
+      );
+
+      setActiveTab(
+        "customer-journey",
+      );
+    }
+  }, [
+    customers,
+    requestedCustomerIdentifier,
+    selectedCustomerKey,
+  ]);
 
   const filteredCustomers = useMemo(() => {
     const searchTerm = search
@@ -718,14 +1132,35 @@ export default function Customers() {
       return [];
     }
 
-    return selectedCustomer.tickets
-      .flatMap(buildTicketEvents)
-      .sort(
-        (firstEvent, secondEvent) =>
-          secondEvent.timestamp -
-          firstEvent.timestamp,
+    const ticketEvents =
+      selectedCustomer.tickets.flatMap(
+        buildTicketEvents,
       );
-  }, [selectedCustomer]);
+
+    const manualEvents =
+      buildCustomerActivityEvents(
+        customerActivities,
+        selectedCustomer,
+      );
+
+    const profileEvents =
+      buildCustomerProfileEvent(
+        selectedCustomer,
+      );
+
+    return [
+      ...ticketEvents,
+      ...manualEvents,
+      ...profileEvents,
+    ].sort(
+      (firstEvent, secondEvent) =>
+        secondEvent.timestamp -
+        firstEvent.timestamp,
+    );
+  }, [
+    selectedCustomer,
+    customerActivities,
+  ]);
 
   const ticketJourney = useMemo(
     () => buildTicketEvents(selectedTicket),
@@ -739,6 +1174,239 @@ export default function Customers() {
 
   const openTicket = (ticketId) => {
     navigate(`/tickets/${ticketId}`);
+  };
+
+  const openCreateTicketForCustomer = () => {
+    if (!selectedCustomer) {
+      return;
+    }
+
+    const usableValue = (value) => {
+      const cleanedValue = cleanValue(value);
+
+      return cleanedValue.toLowerCase() ===
+        "not available"
+        ? ""
+        : cleanedValue;
+    };
+
+    let customerRecord =
+      selectedCustomer.storageId
+        ? getCustomers().find(
+            (customer) =>
+              String(customer.id) ===
+              String(
+                selectedCustomer.storageId,
+              ),
+          )
+        : null;
+
+    if (!customerRecord) {
+      customerRecord =
+        findExistingCustomer({
+          email: usableValue(
+            selectedCustomer.email,
+          ),
+          phone: usableValue(
+            selectedCustomer.phone,
+          ),
+          walletId: usableValue(
+            selectedCustomer.walletId,
+          ),
+          retailerId: usableValue(
+            selectedCustomer.retailerId,
+          ),
+        });
+    }
+
+    if (!customerRecord) {
+      customerRecord = createCustomer({
+        name:
+          usableValue(
+            selectedCustomer.name,
+          ) || "Unknown Customer",
+
+        email: usableValue(
+          selectedCustomer.email,
+        ),
+
+        phone: usableValue(
+          selectedCustomer.phone,
+        ),
+
+        cnic: usableValue(
+          selectedCustomer.cnic,
+        ),
+
+        walletId: usableValue(
+          selectedCustomer.walletId,
+        ),
+
+        retailerId: usableValue(
+          selectedCustomer.retailerId,
+        ),
+
+        city: usableValue(
+          selectedCustomer.city,
+        ),
+
+        accountStatus:
+          selectedCustomer.accountStatus ||
+          "Active",
+
+        riskLevel:
+          selectedCustomer.riskLevel ||
+          "Normal",
+      });
+
+      setStoredCustomers(
+        getCustomers(),
+      );
+    }
+
+    navigate(
+      `/tickets?create=1&customerId=${encodeURIComponent(
+        String(customerRecord.id),
+      )}`,
+    );
+  };
+
+  const openCreateCustomer = () => {
+    setCustomerModal({
+      open: true,
+      mode: "create",
+      customer: null,
+    });
+  };
+
+  const openEditCustomer = (
+    customer,
+  ) => {
+    setCustomerModal({
+      open: true,
+      mode: "edit",
+      customer,
+    });
+  };
+
+  const closeCustomerModal = () => {
+    setCustomerModal({
+      open: false,
+      mode: "create",
+      customer: null,
+    });
+  };
+
+  const handleSaveCustomer = (
+    customerData,
+  ) => {
+    const editingStoredCustomer =
+      customerModal.mode === "edit" &&
+      customerModal.customer?.storageId;
+
+    if (editingStoredCustomer) {
+      updateCustomer(
+        customerModal.customer.storageId,
+        customerData,
+      );
+    } else {
+      createCustomer(customerData);
+    }
+
+    setStoredCustomers(getCustomers());
+  };
+
+
+  const handleSaveInteraction = (
+    interactionData,
+  ) => {
+    if (!selectedCustomer) {
+      throw new Error(
+        "Select a customer before recording an interaction.",
+      );
+    }
+
+    let storedCustomerId =
+      selectedCustomer.storageId;
+
+    if (!storedCustomerId) {
+      const existingCustomer =
+        findExistingCustomer({
+          email:
+            selectedCustomer.email,
+          phone:
+            selectedCustomer.phone,
+          walletId:
+            selectedCustomer.walletId,
+          retailerId:
+            selectedCustomer.retailerId,
+        });
+
+      if (existingCustomer) {
+        storedCustomerId =
+          existingCustomer.id;
+      } else {
+        const createdCustomer =
+          createCustomer({
+            name:
+              selectedCustomer.name,
+            email:
+              selectedCustomer.email,
+            phone:
+              selectedCustomer.phone,
+
+            cnic:
+              selectedCustomer.cnic ===
+              "Not available"
+                ? ""
+                : selectedCustomer.cnic,
+
+            walletId:
+              selectedCustomer.walletId ===
+              "Not available"
+                ? ""
+                : selectedCustomer.walletId,
+
+            retailerId:
+              selectedCustomer.retailerId ===
+              "Not available"
+                ? ""
+                : selectedCustomer.retailerId,
+
+            city:
+              selectedCustomer.city ===
+              "Not available"
+                ? ""
+                : selectedCustomer.city,
+
+            accountStatus:
+              selectedCustomer.accountStatus,
+
+            riskLevel:
+              selectedCustomer.riskLevel,
+          });
+
+        storedCustomerId =
+          createdCustomer.id;
+      }
+
+      setStoredCustomers(
+        getCustomers(),
+      );
+    }
+
+    createCustomerActivity(
+      storedCustomerId,
+      interactionData,
+    );
+
+    setCustomerActivities(
+      getCustomerActivities(),
+    );
+
+    setActiveTab(
+      "customer-journey",
+    );
   };
 
   if (loading) {
@@ -784,9 +1452,19 @@ export default function Customers() {
           </p>
         </div>
 
-        <div className="cw-header-summary">
-          <span>Total Customers</span>
-          <strong>{customers.length}</strong>
+        <div className="cw-header-actions">
+          <button
+            type="button"
+            className="cw-add-customer-button"
+            onClick={openCreateCustomer}
+          >
+            + Add Customer
+          </button>
+
+          <div className="cw-header-summary">
+            <span>Total Customers</span>
+            <strong>{customers.length}</strong>
+          </div>
         </div>
       </header>
 
@@ -910,6 +1588,40 @@ export default function Customers() {
                   </div>
 
                   <div className="cw-profile-badges">
+                    <button
+                      type="button"
+                      className="cw-create-customer-ticket-button"
+                      onClick={
+                        openCreateTicketForCustomer
+                      }
+                    >
+                      + Create Ticket
+                    </button>
+
+                    <button
+                      type="button"
+                      className="cw-log-interaction-button"
+                      onClick={() =>
+                        setInteractionModalOpen(
+                          true,
+                        )
+                      }
+                    >
+                      + Log Interaction
+                    </button>
+
+                    <button
+                      type="button"
+                      className="cw-edit-customer-button"
+                      onClick={() =>
+                        openEditCustomer(
+                          selectedCustomer,
+                        )
+                      }
+                    >
+                      Edit Customer
+                    </button>
+
                     <span className="cw-account-badge">
                       {
                         selectedCustomer.accountStatus
@@ -1450,6 +2162,24 @@ export default function Customers() {
           )}
         </main>
       </div>
+
+      <CustomerFormModal
+        open={customerModal.open}
+        mode={customerModal.mode}
+        customer={customerModal.customer}
+        onClose={closeCustomerModal}
+        onSave={handleSaveCustomer}
+      />
+
+
+      <CustomerInteractionModal
+        open={interactionModalOpen}
+        customer={selectedCustomer}
+        onClose={() =>
+          setInteractionModalOpen(false)
+        }
+        onSave={handleSaveInteraction}
+      />
     </div>
   );
 }

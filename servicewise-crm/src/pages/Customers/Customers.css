@@ -1122,3 +1122,116 @@
     width: 100%;
   }
 }
+
+
+/* CUSTOMER FORM ACTIONS */
+
+.cw-header-actions {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cw-add-customer-button {
+  min-height: 56px;
+  padding: 11px 18px;
+  border: 1px solid #0f766e;
+  border-radius: 12px;
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow:
+    0 4px 14px rgba(15, 118, 110, 0.16);
+}
+
+.cw-add-customer-button:hover {
+  background: #0b625c;
+}
+
+.cw-edit-customer-button {
+  min-height: 30px;
+  padding: 6px 11px;
+  border: 1px solid #0b5a8f;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0b5a8f;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cw-edit-customer-button:hover {
+  background: #eaf3f8;
+}
+
+@media (max-width: 640px) {
+  .cw-header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .cw-add-customer-button {
+    width: 100%;
+  }
+}
+
+/* CUSTOMER INTERACTION ACTIONS */
+
+.cw-log-interaction-button {
+  min-height: 30px;
+  padding: 6px 11px;
+  border: 1px solid #0f766e;
+  border-radius: 999px;
+  background: #0f766e;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cw-log-interaction-button:hover {
+  background: #0b625c;
+}
+
+.cw-event-channel {
+  color: #0f766e !important;
+  font-size: 10px !important;
+  font-weight: 800;
+}
+
+/* CREATE TICKET FROM CUSTOMER */
+
+.cw-create-customer-ticket-button {
+  min-height: 34px;
+  padding: 7px 14px;
+
+  border: 1px solid #0b5a8f;
+  border-radius: 8px;
+
+  background: #0b5a8f;
+  color: #ffffff;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.cw-create-customer-ticket-button:hover {
+  border-color: #08456e;
+  background: #08456e;
+  transform: translateY(-1px);
+}
+
+.cw-create-customer-ticket-button:active {
+  transform: translateY(0);
+}
+

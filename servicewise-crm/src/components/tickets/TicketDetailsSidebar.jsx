@@ -12,6 +12,8 @@ import {
   FaWhatsapp,
 } from "react-icons/fa";
 
+import { useNavigate } from "react-router-dom";
+
 import "./TicketDetailsSidebar.css";
 
 const firstValue = (...values) => {
@@ -234,6 +236,8 @@ export default function TicketDetailsSidebar({
   onPriorityChange,
   onAgentChange,
 }) {
+  const navigate = useNavigate();
+
   const channel = normalizeChannel(ticket);
 
   const messages =
@@ -268,6 +272,33 @@ export default function TicketDetailsSidebar({
     ticket?.customerPhone,
     ticket?.customer_phone,
   );
+
+  const customerLookupValue = firstValue(
+    ticket?.customer?.id,
+    ticket?.customerId,
+    ticket?.customer_id,
+    ticket?.customer?.customerNumber,
+    ticket?.customerNumber,
+    ticket?.customer_number,
+    customerEmail !== "N/A"
+      ? customerEmail
+      : "",
+    customerPhone !== "N/A"
+      ? customerPhone
+      : "",
+  );
+
+  const openCustomerProfile = () => {
+    if (!customerLookupValue) {
+      return;
+    }
+
+    navigate(
+      `/customers?customerId=${encodeURIComponent(
+        String(customerLookupValue),
+      )}`,
+    );
+  };
 
   const customerType = displayValue(
     ticket?.customer?.type,
@@ -460,6 +491,16 @@ export default function TicketDetailsSidebar({
           icon={<FaUser />}
           open
         >
+          <button
+            type="button"
+            className="ticket-sidebar-customer-profile-button"
+            onClick={openCustomerProfile}
+            disabled={!customerLookupValue}
+          >
+            <FaUser />
+            Open Customer 360
+          </button>
+
           <PropertyRow
             label="Name"
             value={customerName}

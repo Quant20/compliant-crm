@@ -1,42 +1,237 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { useTickets } from "../../context/TicketContext";
+
 import users from "../../data/users";
+
+import {
+  createCustomer,
+  findExistingCustomer,
+  getCustomers,
+} from "../../services/customerService";
 
 import "./CreateTicketModal.css";
 
-const initialForm = {
+const INITIAL_FORM = {
   subject: "",
-  customer: "",
-  email: "",
+  description: "",
   category: "General",
   priority: "Medium",
-  assignedAgent: "",
+
+  customerMode: "new",
+  selectedCustomerId: "",
+
+  customer: "",
+  email: "",
+  phone: "",
+  cnic: "",
+  walletId: "",
+  retailerId: "",
+  city: "",
+
   department: "Support",
-  description: "",
+  assignedAgent: "",
 };
+
+function cleanValue(value) {
+  return String(value ?? "").trim();
+}
+
+function getUsableValue(value) {
+  const cleanedValue = cleanValue(value);
+
+  if (
+    cleanedValue.toLowerCase() ===
+    "not available"
+  ) {
+    return "";
+  }
+
+  return cleanedValue;
+}
+
+function getCustomerFormValues(customer) {
+  if (!customer) {
+    return {
+      selectedCustomerId: "",
+      customer: "",
+      email: "",
+      phone: "",
+      cnic: "",
+      walletId: "",
+      retailerId: "",
+      city: "",
+    };
+  }
+
+  return {
+    selectedCustomerId:
+      customer.id || "",
+
+    customer:
+      getUsableValue(customer.name),
+
+    email:
+      getUsableValue(customer.email),
+
+    phone:
+      getUsableValue(customer.phone),
+
+    cnic:
+      getUsableValue(customer.cnic),
+
+    walletId:
+      getUsableValue(customer.walletId),
+
+    retailerId:
+      getUsableValue(customer.retailerId),
+
+    city:
+      getUsableValue(customer.city),
+  };
+}
+
+function getCustomerDisplayName(customer) {
+  const customerNumber =
+    customer.customerNumber
+      ? ` · ${customer.customerNumber}`
+      : "";
+
+  const contact =
+    customer.email ||
+    customer.phone ||
+    "No contact";
+
+  return `${customer.name}${customerNumber} · ${contact}`;
+}
+
+function calculateSlaHours(priority) {
+  switch (priority) {
+    case "Critical":
+      return 4;
+
+    case "High":
+      return 8;
+
+    case "Medium":
+      return 24;
+
+    default:
+      return 48;
+  }
+}
 
 export default function CreateTicketModal({
   open,
   onClose,
+  initialCustomerId = "",
 }) {
   const { createTicket } = useTickets();
 
-  const [form, setForm] = useState(initialForm);
-  const [error, setError] = useState("");
-  const [isSubmitting, setIsSubmitting] =
-    useState(false);
+  const [form, setForm] =
+    useState(INITIAL_FORM);
 
-  const supportAgents = users.filter(
-    (user) =>
-      user.role === "Support Agent" &&
-      user.accountStatus === "Active"
+  const [customers, setCustomers] =
+    useState([]);
+
+  const [error, setError] =
+    useState("");
+
+  const [
+    isSubmitting,
+    setIsSubmitting,
+  ] = useState(false);
+
+  const supportAgents = useMemo(
+    () =>
+      users.filter(
+        (user) =>
+          user.role === "Support Agent" &&
+          user.accountStatus === "Active",
+      ),
+    [],
   );
+
+  function resetForm() {
+    setForm({
+      ...INITIAL_FORM,
+    });
+
+    setError("");
+    setIsSubmitting(false);
+  }
+
+  function handleClose() {
+    resetForm();
+    onClose();
+  }
 
   useEffect(() => {
     if (!open) {
       return undefined;
     }
+
+    const savedCustomers =
+      getCustomers();
+
+    setCustomers(savedCustomers);
+
+    const normalizedInitialCustomerId =
+      String(initialCustomerId || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "");
+
+    const requestedInitialCustomer =
+      savedCustomers.find((customer) => {
+        if (!normalizedInitialCustomerId) {
+          return false;
+        }
+
+        const possibleValues = [
+          customer.id,
+          customer.customerNumber,
+          customer.email,
+          customer.phone,
+          customer.walletId,
+          customer.retailerId,
+        ];
+
+        return possibleValues.some(
+          (value) =>
+            String(value || "")
+              .trim()
+              .toLowerCase()
+              .replace(/\s+/g, "") ===
+            normalizedInitialCustomerId,
+        );
+      });
+
+    if (savedCustomers.length > 0) {
+      const firstCustomer =
+        requestedInitialCustomer ||
+        savedCustomers[0];
+
+      setForm({
+        ...INITIAL_FORM,
+        customerMode: "existing",
+        ...getCustomerFormValues(
+          firstCustomer,
+        ),
+      });
+    } else {
+      setForm({
+        ...INITIAL_FORM,
+        customerMode: "new",
+      });
+    }
+
+    setError("");
+    setIsSubmitting(false);
 
     const handleEscape = (event) => {
       if (event.key === "Escape") {
@@ -46,18 +241,20 @@ export default function CreateTicketModal({
 
     document.addEventListener(
       "keydown",
-      handleEscape
+      handleEscape,
     );
 
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow =
+      "hidden";
 
     return () => {
       document.removeEventListener(
         "keydown",
-        handleEscape
+        handleEscape,
       );
 
-      document.body.style.overflow = "";
+      document.body.style.overflow =
+        "";
     };
   }, [open]);
 
@@ -65,8 +262,9 @@ export default function CreateTicketModal({
     return null;
   }
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
+  function handleChange(event) {
+    const { name, value } =
+      event.target;
 
     setForm((currentForm) => ({
       ...currentForm,
@@ -74,38 +272,179 @@ export default function CreateTicketModal({
     }));
 
     setError("");
-  };
+  }
 
-  const handleClose = () => {
-    setForm(initialForm);
+  function handleCustomerModeChange(
+    customerMode,
+  ) {
+    if (customerMode === "existing") {
+      const firstCustomer =
+        customers[0];
+
+      setForm((currentForm) => ({
+        ...currentForm,
+        customerMode: "existing",
+        ...getCustomerFormValues(
+          firstCustomer,
+        ),
+      }));
+    } else {
+      setForm((currentForm) => ({
+        ...currentForm,
+        customerMode: "new",
+        selectedCustomerId: "",
+        customer: "",
+        email: "",
+        phone: "",
+        cnic: "",
+        walletId: "",
+        retailerId: "",
+        city: "",
+      }));
+    }
+
     setError("");
-    setIsSubmitting(false);
-    onClose();
-  };
+  }
 
-  const handleOverlayClick = (event) => {
-    if (event.target === event.currentTarget) {
+  function handleCustomerSelection(
+    event,
+  ) {
+    const selectedCustomerId =
+      event.target.value;
+
+    const selectedCustomer =
+      customers.find(
+        (customer) =>
+          String(customer.id) ===
+          String(selectedCustomerId),
+      );
+
+    setForm((currentForm) => ({
+      ...currentForm,
+      customerMode: "existing",
+      ...getCustomerFormValues(
+        selectedCustomer,
+      ),
+    }));
+
+    setError("");
+  }
+
+  function handleOverlayClick(event) {
+    if (
+      event.target ===
+      event.currentTarget
+    ) {
       handleClose();
     }
-  };
+  }
 
-  const handleSubmit = async(event) => {
+  function resolveCustomer() {
+    if (
+      form.customerMode === "existing"
+    ) {
+      const selectedCustomer =
+        customers.find(
+          (customer) =>
+            String(customer.id) ===
+            String(
+              form.selectedCustomerId,
+            ),
+        );
+
+      if (!selectedCustomer) {
+        throw new Error(
+          "Select an existing customer.",
+        );
+      }
+
+      return selectedCustomer;
+    }
+
+    const customerData = {
+      name: cleanValue(form.customer),
+      email: cleanValue(form.email),
+      phone: cleanValue(form.phone),
+      cnic: cleanValue(form.cnic),
+      walletId: cleanValue(
+        form.walletId,
+      ),
+      retailerId: cleanValue(
+        form.retailerId,
+      ),
+      city: cleanValue(form.city),
+      accountStatus: "Active",
+      riskLevel: "Normal",
+      preferredChannel:
+        form.email
+          ? "Email"
+          : "Phone",
+    };
+
+    const existingCustomer =
+      findExistingCustomer(
+        customerData,
+      );
+
+    if (existingCustomer) {
+      return existingCustomer;
+    }
+
+    const newCustomer =
+      createCustomer(customerData);
+
+    setCustomers(getCustomers());
+
+    return newCustomer;
+  }
+
+  async function handleSubmit(event) {
     event.preventDefault();
 
-    const cleanSubject = form.subject.trim();
-    const cleanCustomer = form.customer.trim();
-    const cleanEmail = form.email.trim();
-    const cleanDescription =
-      form.description.trim();
+    setError("");
 
-    if (
-      !cleanSubject ||
-      !cleanCustomer ||
-      !cleanEmail ||
-      !cleanDescription
-    ) {
+    const cleanSubject =
+      cleanValue(form.subject);
+
+    const cleanDescription =
+      cleanValue(form.description);
+
+    const cleanCustomerName =
+      cleanValue(form.customer);
+
+    const cleanEmail =
+      cleanValue(form.email);
+
+    const cleanPhone =
+      cleanValue(form.phone);
+
+    if (!cleanSubject) {
       setError(
-        "Please complete all required fields."
+        "Complaint subject is required.",
+      );
+
+      return;
+    }
+
+    if (!cleanDescription) {
+      setError(
+        "Complaint details are required.",
+      );
+
+      return;
+    }
+
+    if (!cleanCustomerName) {
+      setError(
+        "Customer name is required.",
+      );
+
+      return;
+    }
+
+    if (!cleanEmail && !cleanPhone) {
+      setError(
+        "Enter at least a customer email address or phone number.",
       );
 
       return;
@@ -114,66 +453,173 @@ export default function CreateTicketModal({
     setIsSubmitting(true);
 
     try {
-      const selectedAgent = supportAgents.find(
-        (agent) =>
-          String(agent.id) ===
-          String(form.assignedAgent)
-      );
+      const resolvedCustomer =
+        resolveCustomer();
+
+      const selectedAgent =
+        supportAgents.find(
+          (agent) =>
+            String(agent.id) ===
+            String(
+              form.assignedAgent,
+            ),
+        );
+
+      const customerId =
+        resolvedCustomer.id;
+
+      const customerNumber =
+        resolvedCustomer.customerNumber ||
+        "";
+
+      const customerRecord = {
+        id: customerId,
+
+        customerId,
+
+        customerNumber,
+
+        name:
+          resolvedCustomer.name ||
+          cleanCustomerName,
+
+        email:
+          resolvedCustomer.email ||
+          cleanEmail,
+
+        phone:
+          resolvedCustomer.phone ||
+          cleanPhone,
+
+        cnic:
+          resolvedCustomer.cnic ||
+          cleanValue(form.cnic),
+
+        walletId:
+          resolvedCustomer.walletId ||
+          cleanValue(form.walletId),
+
+        retailerId:
+          resolvedCustomer.retailerId ||
+          cleanValue(
+            form.retailerId,
+          ),
+
+        city:
+          resolvedCustomer.city ||
+          cleanValue(form.city),
+
+        accountStatus:
+          resolvedCustomer.accountStatus ||
+          "Active",
+
+        riskLevel:
+          resolvedCustomer.riskLevel ||
+          "Normal",
+      };
 
       await createTicket({
         subject: cleanSubject,
-        description: cleanDescription,
 
-        customer: {
-          id: Date.now(),
-          name: cleanCustomer,
-          email: cleanEmail,
-        },
+        description:
+          cleanDescription,
 
         category: form.category,
+
         priority: form.priority,
 
-        assignedAgent: selectedAgent
-          ? selectedAgent.name
-          : "Unassigned",
+        status: "Open",
 
-        assignedAgentId: selectedAgent
-          ? selectedAgent.id
-          : null,
+        source: "Manual",
 
-        department: form.department,
+        customer: customerRecord,
+
+        customerId,
+
+        customer_id: customerId,
+
+        customerNumber,
+
+        customer_number:
+          customerNumber,
+
+        customerName:
+          customerRecord.name,
+
+        customer_name:
+          customerRecord.name,
+
+        customerEmail:
+          customerRecord.email,
+
+        customer_email:
+          customerRecord.email,
+
+        customerPhone:
+          customerRecord.phone,
+
+        customer_phone:
+          customerRecord.phone,
+
+        walletId:
+          customerRecord.walletId,
+
+        wallet_id:
+          customerRecord.walletId,
+
+        retailerId:
+          customerRecord.retailerId,
+
+        retailer_id:
+          customerRecord.retailerId,
+
+        department:
+          form.department,
+
+        assignedAgent:
+          selectedAgent
+            ? selectedAgent.name
+            : "Unassigned",
+
+        assignedAgentName:
+          selectedAgent
+            ? selectedAgent.name
+            : "Unassigned",
+
+        assignedAgentId:
+          selectedAgent
+            ? selectedAgent.id
+            : null,
 
         slaHours:
-  form.priority === "Critical"
-    ? 4
-    : form.priority === "High"
-      ? 8
-      : form.priority === "Medium"
-        ? 24
-        : 48,
+          calculateSlaHours(
+            form.priority,
+          ),
       });
 
-      setForm(initialForm);
-      setError("");
+      resetForm();
       onClose();
     } catch (submitError) {
       console.error(
         "Ticket creation failed:",
-        submitError
+        submitError,
       );
 
       setError(
-        "The ticket could not be created. Please try again."
+        submitError?.message ||
+          "The ticket could not be created. Please try again.",
       );
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
   return (
     <div
       className="create-ticket-overlay"
-      onMouseDown={handleOverlayClick}
+      onMouseDown={
+        handleOverlayClick
+      }
       role="presentation"
     >
       <div
@@ -193,8 +639,9 @@ export default function CreateTicketModal({
             </h2>
 
             <p>
-              Register a customer complaint and
-              assign it to the appropriate team.
+              Register a complaint and
+              connect it to the customer’s
+              complete history.
             </p>
           </div>
 
@@ -225,10 +672,13 @@ export default function CreateTicketModal({
 
           <section className="create-ticket-section">
             <div className="create-ticket-section-heading">
-              <h3>Complaint information</h3>
+              <h3>
+                Complaint information
+              </h3>
 
               <p>
-                Enter the main complaint details.
+                Enter the customer’s issue
+                and complaint category.
               </p>
             </div>
 
@@ -242,12 +692,13 @@ export default function CreateTicketModal({
                 <input
                   id="ticket-subject"
                   name="subject"
-                  type="text"
-                  placeholder="Enter a short complaint subject"
                   value={form.subject}
                   onChange={handleChange}
-                  disabled={isSubmitting}
-                  required
+                  placeholder="Enter a short complaint subject"
+                  disabled={
+                    isSubmitting
+                  }
+                  autoFocus
                 />
               </div>
 
@@ -261,7 +712,9 @@ export default function CreateTicketModal({
                   name="category"
                   value={form.category}
                   onChange={handleChange}
-                  disabled={isSubmitting}
+                  disabled={
+                    isSubmitting
+                  }
                 >
                   <option value="General">
                     General
@@ -271,8 +724,24 @@ export default function CreateTicketModal({
                     Payments
                   </option>
 
-                  <option value="Authentication">
-                    Authentication
+                  <option value="Transactions">
+                    Transactions
+                  </option>
+
+                  <option value="Wallet">
+                    Wallet
+                  </option>
+
+                  <option value="KYC">
+                    KYC
+                  </option>
+
+                  <option value="Voucher">
+                    Voucher
+                  </option>
+
+                  <option value="Refund">
+                    Refund
                   </option>
 
                   <option value="Technical">
@@ -281,6 +750,10 @@ export default function CreateTicketModal({
 
                   <option value="Account">
                     Account
+                  </option>
+
+                  <option value="Fraud">
+                    Fraud
                   </option>
                 </select>
               </div>
@@ -295,9 +768,13 @@ export default function CreateTicketModal({
                   name="priority"
                   value={form.priority}
                   onChange={handleChange}
-                  disabled={isSubmitting}
+                  disabled={
+                    isSubmitting
+                  }
                 >
-                  <option value="Low">Low</option>
+                  <option value="Low">
+                    Low
+                  </option>
 
                   <option value="Medium">
                     Medium
@@ -322,16 +799,23 @@ export default function CreateTicketModal({
                 <textarea
                   id="ticket-description"
                   name="description"
-                  placeholder="Describe the customer's complaint, issue and any important details..."
-                  value={form.description}
+                  value={
+                    form.description
+                  }
                   onChange={handleChange}
-                  disabled={isSubmitting}
-                  rows={6}
-                  required
+                  placeholder="Describe the complaint, transaction issue and required action..."
+                  disabled={
+                    isSubmitting
+                  }
+                  rows="5"
                 />
 
                 <small>
-                  {form.description.length} characters
+                  {
+                    form.description
+                      .length
+                  }{" "}
+                  characters
                 </small>
               </div>
             </div>
@@ -339,50 +823,282 @@ export default function CreateTicketModal({
 
           <section className="create-ticket-section">
             <div className="create-ticket-section-heading">
-              <h3>Customer information</h3>
+              <h3>
+                Customer information
+              </h3>
 
               <p>
-                Add the customer contact details.
+                Select an existing customer
+                or create a new customer
+                record.
               </p>
             </div>
 
-            <div className="create-ticket-grid">
-              <div className="create-ticket-field">
-                <label htmlFor="ticket-customer">
-                  Customer name
-                  <span>*</span>
-                </label>
+            <div className="create-ticket-customer-mode">
+              <button
+                type="button"
+                className={
+                  form.customerMode ===
+                  "existing"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  handleCustomerModeChange(
+                    "existing",
+                  )
+                }
+                disabled={
+                  customers.length === 0 ||
+                  isSubmitting
+                }
+              >
+                Existing Customer
+                <span>
+                  {customers.length}
+                </span>
+              </button>
 
-                <input
-                  id="ticket-customer"
-                  name="customer"
-                  type="text"
-                  placeholder="Enter customer name"
-                  value={form.customer}
-                  onChange={handleChange}
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-
-              <div className="create-ticket-field">
-                <label htmlFor="ticket-email">
-                  Customer email
-                  <span>*</span>
-                </label>
-
-                <input
-                  id="ticket-email"
-                  name="email"
-                  type="email"
-                  placeholder="customer@example.com"
-                  value={form.email}
-                  onChange={handleChange}
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
+              <button
+                type="button"
+                className={
+                  form.customerMode ===
+                  "new"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  handleCustomerModeChange(
+                    "new",
+                  )
+                }
+                disabled={
+                  isSubmitting
+                }
+              >
+                New Customer
+              </button>
             </div>
+
+            {form.customerMode ===
+              "existing" &&
+            customers.length > 0 ? (
+              <>
+                <div className="create-ticket-field create-ticket-field-full create-ticket-customer-select">
+                  <label htmlFor="existing-customer">
+                    Select customer
+                    <span>*</span>
+                  </label>
+
+                  <select
+                    id="existing-customer"
+                    value={
+                      form.selectedCustomerId
+                    }
+                    onChange={
+                      handleCustomerSelection
+                    }
+                    disabled={
+                      isSubmitting
+                    }
+                  >
+                    {customers.map(
+                      (customer) => (
+                        <option
+                          key={
+                            customer.id
+                          }
+                          value={
+                            customer.id
+                          }
+                        >
+                          {getCustomerDisplayName(
+                            customer,
+                          )}
+                        </option>
+                      ),
+                    )}
+                  </select>
+                </div>
+
+                <div className="create-ticket-selected-customer">
+                  <div>
+                    <span>Name</span>
+                    <strong>
+                      {form.customer ||
+                        "Not available"}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Email</span>
+                    <strong>
+                      {form.email ||
+                        "Not available"}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Phone</span>
+                    <strong>
+                      {form.phone ||
+                        "Not available"}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>Wallet ID</span>
+                    <strong>
+                      {form.walletId ||
+                        "Not available"}
+                    </strong>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="create-ticket-grid">
+                <div className="create-ticket-field">
+                  <label htmlFor="ticket-customer">
+                    Customer name
+                    <span>*</span>
+                  </label>
+
+                  <input
+                    id="ticket-customer"
+                    name="customer"
+                    value={
+                      form.customer
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="Enter customer name"
+                    disabled={
+                      isSubmitting
+                    }
+                  />
+                </div>
+
+                <div className="create-ticket-field">
+                  <label htmlFor="ticket-email">
+                    Customer email
+                  </label>
+
+                  <input
+                    id="ticket-email"
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="customer@example.com"
+                    disabled={
+                      isSubmitting
+                    }
+                  />
+                </div>
+
+                <div className="create-ticket-field">
+                  <label htmlFor="ticket-phone">
+                    Phone number
+                  </label>
+
+                  <input
+                    id="ticket-phone"
+                    name="phone"
+                    value={form.phone}
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="03XX-XXXXXXX"
+                    disabled={
+                      isSubmitting
+                    }
+                  />
+                </div>
+
+                <div className="create-ticket-field">
+                  <label htmlFor="ticket-cnic">
+                    CNIC
+                  </label>
+
+                  <input
+                    id="ticket-cnic"
+                    name="cnic"
+                    value={form.cnic}
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="XXXXX-XXXXXXX-X"
+                    disabled={
+                      isSubmitting
+                    }
+                  />
+                </div>
+
+                <div className="create-ticket-field">
+                  <label htmlFor="ticket-wallet">
+                    Wallet ID
+                  </label>
+
+                  <input
+                    id="ticket-wallet"
+                    name="walletId"
+                    value={
+                      form.walletId
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="Wallet reference"
+                    disabled={
+                      isSubmitting
+                    }
+                  />
+                </div>
+
+                <div className="create-ticket-field">
+                  <label htmlFor="ticket-retailer">
+                    Retailer ID
+                  </label>
+
+                  <input
+                    id="ticket-retailer"
+                    name="retailerId"
+                    value={
+                      form.retailerId
+                    }
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="Retailer reference"
+                    disabled={
+                      isSubmitting
+                    }
+                  />
+                </div>
+
+                <div className="create-ticket-field">
+                  <label htmlFor="ticket-city">
+                    City
+                  </label>
+
+                  <input
+                    id="ticket-city"
+                    name="city"
+                    value={form.city}
+                    onChange={
+                      handleChange
+                    }
+                    placeholder="Karachi"
+                    disabled={
+                      isSubmitting
+                    }
+                  />
+                </div>
+              </div>
+            )}
           </section>
 
           <section className="create-ticket-section">
@@ -390,8 +1106,8 @@ export default function CreateTicketModal({
               <h3>Assignment</h3>
 
               <p>
-                Select the responsible department
-                and agent.
+                Select the responsible
+                department and support agent.
               </p>
             </div>
 
@@ -404,9 +1120,15 @@ export default function CreateTicketModal({
                 <select
                   id="ticket-department"
                   name="department"
-                  value={form.department}
-                  onChange={handleChange}
-                  disabled={isSubmitting}
+                  value={
+                    form.department
+                  }
+                  onChange={
+                    handleChange
+                  }
+                  disabled={
+                    isSubmitting
+                  }
                 >
                   <option value="Support">
                     Support
@@ -427,6 +1149,14 @@ export default function CreateTicketModal({
                   <option value="Compliance">
                     Compliance
                   </option>
+
+                  <option value="Risk">
+                    Risk
+                  </option>
+
+                  <option value="Retail">
+                    Retail
+                  </option>
                 </select>
               </div>
 
@@ -438,22 +1168,30 @@ export default function CreateTicketModal({
                 <select
                   id="ticket-agent"
                   name="assignedAgent"
-                  value={form.assignedAgent}
-                  onChange={handleChange}
-                  disabled={isSubmitting}
+                  value={
+                    form.assignedAgent
+                  }
+                  onChange={
+                    handleChange
+                  }
+                  disabled={
+                    isSubmitting
+                  }
                 >
                   <option value="">
                     Unassigned
                   </option>
 
-                  {supportAgents.map((agent) => (
-                    <option
-                      key={agent.id}
-                      value={agent.id}
-                    >
-                      {agent.name}
-                    </option>
-                  ))}
+                  {supportAgents.map(
+                    (agent) => (
+                      <option
+                        key={agent.id}
+                        value={agent.id}
+                      >
+                        {agent.name}
+                      </option>
+                    ),
+                  )}
                 </select>
               </div>
             </div>
@@ -464,7 +1202,9 @@ export default function CreateTicketModal({
               type="button"
               className="create-ticket-cancel"
               onClick={handleClose}
-              disabled={isSubmitting}
+              disabled={
+                isSubmitting
+              }
             >
               Cancel
             </button>
@@ -472,7 +1212,9 @@ export default function CreateTicketModal({
             <button
               type="submit"
               className="create-ticket-submit"
-              disabled={isSubmitting}
+              disabled={
+                isSubmitting
+              }
             >
               {isSubmitting
                 ? "Creating ticket..."
