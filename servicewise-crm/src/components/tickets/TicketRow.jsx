@@ -1,4 +1,7 @@
-import React from "react";
+import React, {
+  useEffect,
+  useState,
+} from "react";
 
 import {
   FaBan,
@@ -6,6 +9,11 @@ import {
   FaTrashAlt,
   FaUndoAlt,
 } from "react-icons/fa";
+
+import {
+  formatSlaDeadline,
+  getSlaStatus,
+} from "../../services/slaService";
 
 const normalizeClassValue = (value) => {
   return String(value || "")
@@ -194,6 +202,35 @@ export default function TicketRow({
 
   const isArchived =
     isClosed || isIrrelevant;
+
+  const [currentTime, setCurrentTime] =
+    useState(Date.now());
+
+  useEffect(() => {
+    if (isArchived) {
+      return undefined;
+    }
+
+    const intervalId =
+      window.setInterval(() => {
+        setCurrentTime(Date.now());
+      }, 60000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isArchived]);
+
+  const slaStatus = getSlaStatus(
+    ticket,
+    currentTime,
+  );
+
+  const slaTitle = slaStatus.dueTimestamp
+    ? `Deadline: ${formatSlaDeadline(
+        slaStatus.dueTimestamp,
+      )}`
+    : "SLA deadline not available";
 
   const openTicket = () => {
     if (

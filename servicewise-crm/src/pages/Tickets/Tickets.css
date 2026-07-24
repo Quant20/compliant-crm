@@ -1723,3 +1723,62 @@ button.crm-list-action-button {
   background: #ffffff !important;
   border-color: #ffffff !important;
 }
+
+/* =========================================================
+   SLA COLUMN AND STATUS
+========================================================= */
+
+.crm-ticket-table {
+  min-width: 1300px;
+}
+
+.crm-col-sla {
+  width: 125px;
+  min-width: 125px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.crm-sla-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 88px;
+  min-height: 28px;
+
+  padding: 5px 9px;
+
+  border: 1px solid transparent;
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.crm-sla-badge-success {
+  border-color: #a6f4c5;
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.crm-sla-badge-warning {
+  border-color: #fedf89;
+  background: #fffaeb;
+  color: #b54708;
+}
+
+.crm-sla-badge-danger {
+  border-color: #fecdca;
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.crm-sla-badge-neutral {
+  border-color: #d0d5dd;
+  background: #f2f4f7;
+  color: #475467;
+}
+
