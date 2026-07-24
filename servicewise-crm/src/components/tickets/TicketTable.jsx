@@ -184,7 +184,7 @@ export default function TicketTable({
             </th>
 
             <th className="crm-col-subject">
-              Subject / issue
+              Issue
             </th>
 
             <th className="crm-col-customer">

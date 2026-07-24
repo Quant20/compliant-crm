@@ -25,11 +25,11 @@ import NoteComposerModal from "../../components/tickets/NoteComposerModal";
 import TicketActionBar from "../../components/tickets/TicketActionBar";
 import TicketDetailsSidebar from "../../components/tickets/TicketDetailsSidebar";
 
-import "./TicketDetailsLayout.css";
-
 import {
   startTicketReminderWatcher,
 } from "../../services/ticketReminderService";
+
+import "./TicketDetailsLayout.css";
 
 const normalizeBadgeValue = (value) => {
   return String(value || "")
@@ -77,6 +77,23 @@ export default function TicketDetails() {
     initialLoadRequested,
     setInitialLoadRequested,
   ] = useState(false);
+
+  const [
+    collapsedSections,
+    setCollapsedSections,
+  ] = useState({
+    complaint: false,
+    messages: false,
+    notes: false,
+    activity: false,
+  });
+
+  const toggleSection = (sectionName) => {
+    setCollapsedSections((current) => ({
+      ...current,
+      [sectionName]: !current[sectionName],
+    }));
+  };
 
   const agents = useMemo(() => {
     return users.filter((user) => {
@@ -232,6 +249,16 @@ export default function TicketDetails() {
     return stopWatcher;
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) {
+        window.clearTimeout(
+          successTimerRef.current,
+        );
+      }
+    };
+  }, []);
+
   const handleStatusChange = (event) => {
     if (!ticket) {
       return;
@@ -377,7 +404,6 @@ export default function TicketDetails() {
     }
 
     saveInternalNote(internalNote.trim());
-
     setInternalNote("");
   };
 
@@ -427,6 +453,11 @@ export default function TicketDetails() {
     });
 
     setActiveTab("notes");
+    setCollapsedSections((current) => ({
+      ...current,
+      notes: false,
+    }));
+
     showSuccess("Internal note added.");
   };
 
@@ -497,6 +528,10 @@ export default function TicketDetails() {
     });
 
     setActiveTab("activity");
+    setCollapsedSections((current) => ({
+      ...current,
+      activity: false,
+    }));
 
     showSuccess(
       `Task created for ${task.dueDate} at ${task.dueTime}.`,
@@ -521,6 +556,10 @@ export default function TicketDetails() {
     });
 
     setActiveTab("activity");
+    setCollapsedSections((current) => ({
+      ...current,
+      activity: false,
+    }));
 
     showSuccess(
       "Google Calendar opened with the meeting details.",
@@ -529,6 +568,11 @@ export default function TicketDetails() {
 
   const handleViewActivity = () => {
     setActiveTab("activity");
+
+    setCollapsedSections((current) => ({
+      ...current,
+      activity: false,
+    }));
 
     window.setTimeout(() => {
       document
@@ -634,11 +678,6 @@ export default function TicketDetails() {
       </div>
     );
   }
-
-  const customerName =
-    ticket.customer?.name ||
-    ticket.customer_name ||
-    "N/A";
 
   const customerEmail =
     ticket.customer?.email ||
@@ -816,8 +855,14 @@ export default function TicketDetails() {
 
             {activeTab === "conversation" && (
               <>
-                <div className="crm-detail-section">
-                  <div className="crm-section-heading">
+                <div
+                  className={`crm-detail-section ${
+                    collapsedSections.complaint
+                      ? "crm-section-collapsed"
+                      : ""
+                  }`}
+                >
+                  <div className="crm-section-heading crm-collapsible-heading">
                     <div>
                       <h2>Complaint / Issue</h2>
 
@@ -826,34 +871,115 @@ export default function TicketDetails() {
                         with this ticket.
                       </p>
                     </div>
+
+                    <button
+                      type="button"
+                      className="crm-collapse-button"
+                      onClick={() =>
+                        toggleSection("complaint")
+                      }
+                      aria-expanded={
+                        !collapsedSections.complaint
+                      }
+                    >
+                      <span>
+                        {collapsedSections.complaint
+                          ? "Open"
+                          : "Minimize"}
+                      </span>
+
+                      <span className="crm-collapse-chevron">
+                        {collapsedSections.complaint
+                          ? "▸"
+                          : "▾"}
+                      </span>
+                    </button>
                   </div>
 
-                  <div className="crm-complaint-box">
-                    {ticket.description ||
-                      "No description available."}
-                  </div>
+                  {!collapsedSections.complaint && (
+                    <div className="crm-collapsible-body">
+                      <div className="crm-complaint-box">
+                        {ticket.description ||
+                          "No description available."}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <CustomerMessagesPanel
-                  ticket={ticket}
-                  messages={conversations}
-                  currentAgentName={
-                    getCurrentAgentName()
-                  }
-                  customerEmail={customerEmail}
-                  onOpenEmail={() =>
-                    setShowEmailReply(true)
-                  }
-                  onSendMessage={
-                    handleCustomerMessageSend
-                  }
-                />
+                <div
+                  className={`crm-collapsible-wrapper ${
+                    collapsedSections.messages
+                      ? "crm-section-collapsed"
+                      : ""
+                  }`}
+                >
+                  <div className="crm-collapsible-panel-heading">
+                    <div>
+                      <h2>Customer Messages</h2>
+
+                      <p>
+                        Communication history and
+                        customer replies.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="crm-collapse-button"
+                      onClick={() =>
+                        toggleSection("messages")
+                      }
+                      aria-expanded={
+                        !collapsedSections.messages
+                      }
+                    >
+                      <span>
+                        {collapsedSections.messages
+                          ? "Open"
+                          : "Minimize"}
+                      </span>
+
+                      <span className="crm-collapse-chevron">
+                        {collapsedSections.messages
+                          ? "▸"
+                          : "▾"}
+                      </span>
+                    </button>
+                  </div>
+
+                  {!collapsedSections.messages && (
+                    <div className="crm-collapsible-body">
+                      <CustomerMessagesPanel
+                        ticket={ticket}
+                        messages={conversations}
+                        currentAgentName={
+                          getCurrentAgentName()
+                        }
+                        customerEmail={
+                          customerEmail
+                        }
+                        onOpenEmail={() =>
+                          setShowEmailReply(true)
+                        }
+                        onSendMessage={
+                          handleCustomerMessageSend
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
               </>
             )}
 
             {activeTab === "notes" && (
-              <div className="crm-detail-section">
-                <div className="crm-section-heading">
+              <div
+                className={`crm-detail-section ${
+                  collapsedSections.notes
+                    ? "crm-section-collapsed"
+                    : ""
+                }`}
+              >
+                <div className="crm-section-heading crm-collapsible-heading">
                   <div>
                     <h2>Internal Notes</h2>
 
@@ -862,94 +988,130 @@ export default function TicketDetails() {
                       team.
                     </p>
                   </div>
-                </div>
 
-                <div className="crm-notes-list">
-                  {internalNotes.length > 0 ? (
-                    internalNotes.map((note) => (
-                      <div
-                        key={
-                          note.id ||
-                          `${note.author}-${note.time}`
-                        }
-                        className="crm-note"
-                      >
-                        <div className="crm-message-heading">
-                          <strong>
-                            {note.author ||
-                              note.user ||
-                              "Agent"}
-                          </strong>
-
-                          <span>
-                            {note.time ||
-                              note.created_at ||
-                              ""}
-                          </span>
-                        </div>
-
-                        {note.html ? (
-                          <div
-                            className="crm-note-content"
-                            dangerouslySetInnerHTML={{
-                              __html: note.html,
-                            }}
-                          />
-                        ) : (
-                          <p>
-                            {note.note ||
-                              note.message ||
-                              note.text ||
-                              ""}
-                          </p>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="crm-empty-section">
-                      No internal notes added.
-                    </div>
-                  )}
-                </div>
-
-                <form
-                  className="crm-composer"
-                  onSubmit={handleInternalNote}
-                >
-                  <label htmlFor="internal-note">
-                    Add internal note
-                  </label>
-
-                  <textarea
-                    ref={noteTextareaRef}
-                    id="internal-note"
-                    value={internalNote}
-                    onChange={(event) =>
-                      setInternalNote(
-                        event.target.value,
-                      )
+                  <button
+                    type="button"
+                    className="crm-collapse-button"
+                    onClick={() =>
+                      toggleSection("notes")
                     }
-                    placeholder="Write a private note for the support team..."
-                  />
+                    aria-expanded={
+                      !collapsedSections.notes
+                    }
+                  >
+                    <span>
+                      {collapsedSections.notes
+                        ? "Open"
+                        : "Minimize"}
+                    </span>
 
-                  <div className="crm-composer-actions">
-                    <button
-                      type="submit"
-                      className="crm-note-action"
-                      disabled={
-                        !internalNote.trim()
+                    <span className="crm-collapse-chevron">
+                      {collapsedSections.notes
+                        ? "▸"
+                        : "▾"}
+                    </span>
+                  </button>
+                </div>
+
+                {!collapsedSections.notes && (
+                  <div className="crm-collapsible-body">
+                    <div className="crm-notes-list">
+                      {internalNotes.length > 0 ? (
+                        internalNotes.map((note) => (
+                          <div
+                            key={
+                              note.id ||
+                              `${note.author}-${note.time}`
+                            }
+                            className="crm-note"
+                          >
+                            <div className="crm-message-heading">
+                              <strong>
+                                {note.author ||
+                                  note.user ||
+                                  "Agent"}
+                              </strong>
+
+                              <span>
+                                {note.time ||
+                                  note.created_at ||
+                                  ""}
+                              </span>
+                            </div>
+
+                            {note.html ? (
+                              <div
+                                className="crm-note-content"
+                                dangerouslySetInnerHTML={{
+                                  __html:
+                                    note.html,
+                                }}
+                              />
+                            ) : (
+                              <p>
+                                {note.note ||
+                                  note.message ||
+                                  note.text ||
+                                  ""}
+                              </p>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="crm-empty-section">
+                          No internal notes added.
+                        </div>
+                      )}
+                    </div>
+
+                    <form
+                      className="crm-composer"
+                      onSubmit={
+                        handleInternalNote
                       }
                     >
-                      Add Internal Note
-                    </button>
+                      <label htmlFor="internal-note">
+                        Add internal note
+                      </label>
+
+                      <textarea
+                        ref={noteTextareaRef}
+                        id="internal-note"
+                        value={internalNote}
+                        onChange={(event) =>
+                          setInternalNote(
+                            event.target.value,
+                          )
+                        }
+                        placeholder="Write a private note for the support team..."
+                      />
+
+                      <div className="crm-composer-actions">
+                        <button
+                          type="submit"
+                          className="crm-note-action"
+                          disabled={
+                            !internalNote.trim()
+                          }
+                        >
+                          Add Internal Note
+                        </button>
+                      </div>
+                    </form>
                   </div>
-                </form>
+                )}
               </div>
             )}
 
             {activeTab === "activity" && (
-              <div className="crm-detail-section">
-                <div className="crm-section-heading">
+              <div
+                className={`crm-detail-section ${
+                  collapsedSections.activity
+                    ? "crm-section-collapsed"
+                    : ""
+                }`}
+              >
+                <div className="crm-section-heading crm-collapsible-heading">
                   <div>
                     <h2>Activity Timeline</h2>
 
@@ -958,45 +1120,72 @@ export default function TicketDetails() {
                       updates.
                     </p>
                   </div>
+
+                  <button
+                    type="button"
+                    className="crm-collapse-button"
+                    onClick={() =>
+                      toggleSection("activity")
+                    }
+                    aria-expanded={
+                      !collapsedSections.activity
+                    }
+                  >
+                    <span>
+                      {collapsedSections.activity
+                        ? "Open"
+                        : "Minimize"}
+                    </span>
+
+                    <span className="crm-collapse-chevron">
+                      {collapsedSections.activity
+                        ? "▸"
+                        : "▾"}
+                    </span>
+                  </button>
                 </div>
 
-                <div className="crm-timeline">
-                  {activities.length > 0 ? (
-                    [...activities]
-                      .reverse()
-                      .map((activity) => (
-                        <div
-                          key={
-                            activity.id ||
-                            `${activity.action}-${activity.time}`
-                          }
-                          className="crm-timeline-item"
-                        >
-                          <div className="crm-timeline-dot" />
+                {!collapsedSections.activity && (
+                  <div className="crm-collapsible-body">
+                    <div className="crm-timeline">
+                      {activities.length > 0 ? (
+                        [...activities]
+                          .reverse()
+                          .map((activity) => (
+                            <div
+                              key={
+                                activity.id ||
+                                `${activity.action}-${activity.time}`
+                              }
+                              className="crm-timeline-item"
+                            >
+                              <div className="crm-timeline-dot" />
 
-                          <div className="crm-timeline-content">
-                            <strong>
-                              {activity.action ||
-                                "Ticket updated"}
-                            </strong>
+                              <div className="crm-timeline-content">
+                                <strong>
+                                  {activity.action ||
+                                    "Ticket updated"}
+                                </strong>
 
-                            <p>
-                              {activity.user ||
-                                "System"}{" "}
-                              ·{" "}
-                              {activity.time ||
-                                activity.created_at ||
-                                ""}
-                            </p>
-                          </div>
+                                <p>
+                                  {activity.user ||
+                                    "System"}{" "}
+                                  ·{" "}
+                                  {activity.time ||
+                                    activity.created_at ||
+                                    ""}
+                                </p>
+                              </div>
+                            </div>
+                          ))
+                      ) : (
+                        <div className="crm-empty-section">
+                          No activity available.
                         </div>
-                      ))
-                  ) : (
-                    <div className="crm-empty-section">
-                      No activity available.
+                      )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             )}
           </section>

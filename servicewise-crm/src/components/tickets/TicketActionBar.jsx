@@ -1,26 +1,20 @@
 import {
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 
 import { createPortal } from "react-dom";
 
 import {
-  FaBold,
   FaCalendarAlt,
   FaCheckCircle,
   FaClipboardList,
   FaEnvelope,
   FaHistory,
-  FaItalic,
-  FaListOl,
-  FaListUl,
   FaPhone,
   FaStickyNote,
   FaTimes,
-  FaUnderline,
 } from "react-icons/fa";
 
 import "./TicketActionBar.css";
@@ -120,78 +114,19 @@ function ModalShell({
   );
 }
 
-function RichTextToolbar({ editorRef }) {
-  const command = (name) => {
-    editorRef.current?.focus();
-    document.execCommand(name, false);
-  };
-
-  return (
-    <div className="crm-action-editor-toolbar">
-      <button
-        type="button"
-        onClick={() => command("bold")}
-        title="Bold"
-      >
-        <FaBold />
-      </button>
-
-      <button
-        type="button"
-        onClick={() => command("italic")}
-        title="Italic"
-      >
-        <FaItalic />
-      </button>
-
-      <button
-        type="button"
-        onClick={() => command("underline")}
-        title="Underline"
-      >
-        <FaUnderline />
-      </button>
-
-      <span />
-
-      <button
-        type="button"
-        onClick={() =>
-          command("insertUnorderedList")
-        }
-        title="Bullet list"
-      >
-        <FaListUl />
-      </button>
-
-      <button
-        type="button"
-        onClick={() =>
-          command("insertOrderedList")
-        }
-        title="Numbered list"
-      >
-        <FaListOl />
-      </button>
-    </div>
-  );
-}
-
 export default function TicketActionBar({
   ticket,
   currentUserName = "Current Agent",
   customerEmail = "",
   customerPhone = "",
   onEmail,
-  onNoteSaved,
+  onNote,
   onCallSaved,
   onTaskSaved,
   onMeetingSaved,
   onViewActivity,
   onCloseTicket,
 }) {
-  const noteEditorRef = useRef(null);
-
   const [activeModal, setActiveModal] =
     useState("");
 
@@ -231,10 +166,6 @@ export default function TicketActionBar({
     setCallForm(INITIAL_CALL);
     setTaskForm(INITIAL_TASK);
     setMeetingForm(INITIAL_MEETING);
-
-    if (noteEditorRef.current) {
-      noteEditorRef.current.innerHTML = "";
-    }
   };
 
   const closeModal = () => {
@@ -305,46 +236,6 @@ export default function TicketActionBar({
         previousOverflow;
     };
   }, [activeModal]);
-
-  const handleSaveNote = async (event) => {
-    event.preventDefault();
-
-    const note =
-      noteEditorRef.current?.innerText
-        ?.trim() || "";
-
-    const html =
-      noteEditorRef.current?.innerHTML || "";
-
-    if (!note) {
-      setError("Please write a note first.");
-      return;
-    }
-
-    try {
-      if (
-        typeof onNoteSaved === "function"
-      ) {
-        await onNoteSaved({
-          note,
-          html,
-          author: currentUserName,
-        });
-      }
-
-      closeModal();
-    } catch (saveError) {
-      console.error(
-        "Unable to save note:",
-        saveError,
-      );
-
-      setError(
-        saveError?.message ||
-          "The note could not be saved.",
-      );
-    }
-  };
 
   const handleCallChange = (event) => {
     const { name, value } = event.target;
@@ -646,7 +537,11 @@ export default function TicketActionBar({
         <button
           type="button"
           className="crm-ticket-action-button"
-          onClick={() => openModal("note")}
+          onClick={() => {
+            if (typeof onNote === "function") {
+              onNote();
+            }
+          }}
         >
           <span>
             <FaStickyNote />
@@ -726,76 +621,6 @@ export default function TicketActionBar({
           {isClosed ? "Closed" : "Close"}
         </button>
       </div>
-
-      {activeModal === "note" && (
-        <ModalShell
-          title="Internal note"
-          subtitle={`Create a private note for ${ticketNumber}.`}
-          onClose={closeModal}
-          size="large"
-        >
-          <form
-            className="crm-composer-form"
-            onSubmit={handleSaveNote}
-          >
-            <div className="crm-composer-recipient">
-              <span>For</span>
-
-              <strong>
-                {ticket?.subject || ticketNumber}
-              </strong>
-            </div>
-
-            {error && (
-              <div className="crm-action-error">
-                {error}
-              </div>
-            )}
-
-            <div className="crm-note-composer">
-              <div
-                ref={noteEditorRef}
-                className="crm-note-editor"
-                contentEditable
-                suppressContentEditableWarning
-                data-placeholder="Start typing to leave a note..."
-                onInput={() => setError("")}
-              />
-
-              <RichTextToolbar
-                editorRef={noteEditorRef}
-              />
-            </div>
-
-            <div className="crm-composer-association">
-              Associated with{" "}
-              <strong>{ticketNumber}</strong> and{" "}
-              <strong>{customerName}</strong>
-            </div>
-
-            <footer className="crm-composer-footer">
-              <span>
-                Visible only to support staff
-              </span>
-
-              <button
-                type="button"
-                className="crm-action-secondary"
-                onClick={closeModal}
-              >
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                className="crm-action-primary"
-              >
-                Create note
-              </button>
-            </footer>
-          </form>
-        </ModalShell>
-      )}
 
       {activeModal === "call" && (
         <ModalShell
@@ -1158,3 +983,4 @@ export default function TicketActionBar({
     </>
   );
 }
+

@@ -31,3 +31,123 @@
     grid-template-columns: 1fr;
   }
 }
+/* =====================================================
+   COLLAPSIBLE TICKET SECTIONS
+===================================================== */
+
+.crm-collapsible-heading,
+.crm-collapsible-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.crm-collapsible-panel-heading {
+  padding: 18px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.crm-collapsible-panel-heading h2 {
+  margin: 0;
+  color: #10233f;
+  font-size: 17px;
+}
+
+.crm-collapsible-panel-heading p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.crm-collapse-button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  padding: 7px 11px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #0f766e;
+
+  font-size: 12px;
+  font-weight: 750;
+
+  cursor: pointer;
+}
+
+.crm-collapse-button:hover {
+  border-color: #0f766e;
+  background: #f0fdfa;
+}
+
+.crm-collapse-button:focus-visible {
+  outline: 3px solid rgba(15, 118, 110, 0.18);
+  outline-offset: 2px;
+}
+
+.crm-collapse-chevron {
+  min-width: 14px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.crm-collapsible-wrapper {
+  margin-top: 18px;
+
+  overflow: hidden;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+
+  background: #ffffff;
+}
+
+.crm-collapsible-body {
+  animation: crm-section-open 160ms ease-out;
+}
+
+.crm-section-collapsed
+  .crm-section-heading,
+.crm-section-collapsed
+  .crm-collapsible-panel-heading {
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+
+@keyframes crm-section-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 650px) {
+  .crm-collapsible-heading,
+  .crm-collapsible-panel-heading {
+    align-items: flex-start;
+  }
+
+  .crm-collapse-button span:first-child {
+    display: none;
+  }
+
+  .crm-collapse-button {
+    width: 36px;
+    padding: 7px;
+  }
+}
+
+
+

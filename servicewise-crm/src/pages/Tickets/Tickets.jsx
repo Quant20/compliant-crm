@@ -84,6 +84,52 @@ const getCreatedTimestamp = (ticket) => {
     : timestamp;
 };
 
+const CLOSED_STATUSES = new Set([
+  "closed",
+]);
+
+const IRRELEVANT_STATUSES = new Set([
+  "irrelevant",
+  "ignored",
+  "not concerned",
+  "not-concerned",
+  "not relevant",
+  "not-relevant",
+]);
+
+const TICKET_VIEW_OPTIONS = [
+  {
+    key: "active",
+    label: "Active",
+  },
+  {
+    key: "closed",
+    label: "Closed",
+  },
+  {
+    key: "irrelevant",
+    label: "Irrelevant",
+  },
+  {
+    key: "all",
+    label: "All",
+  },
+];
+
+const getTicketView = (ticket) => {
+  const status = normalizeText(ticket.status);
+
+  if (CLOSED_STATUSES.has(status)) {
+    return "closed";
+  }
+
+  if (IRRELEVANT_STATUSES.has(status)) {
+    return "irrelevant";
+  }
+
+  return "active";
+};
+
 export default function Tickets() {
   const navigate = useNavigate();
 
@@ -97,6 +143,9 @@ export default function Tickets() {
 
   const [searchTerm, setSearchTerm] =
     useState("");
+
+  const [ticketView, setTicketView] =
+    useState("active");
 
   const [statusFilter, setStatusFilter] =
     useState("All");
@@ -126,8 +175,35 @@ export default function Tickets() {
   const [refreshing, setRefreshing] =
     useState(false);
 
+  const ticketViewCounts = useMemo(() => {
+    const counts = {
+      active: 0,
+      closed: 0,
+      irrelevant: 0,
+      all: tickets.length,
+    };
+
+    tickets.forEach((ticket) => {
+      const view = getTicketView(ticket);
+
+      counts[view] += 1;
+    });
+
+    return counts;
+  }, [tickets]);
+
+  const ticketsForSelectedView = useMemo(() => {
+    if (ticketView === "all") {
+      return tickets;
+    }
+
+    return tickets.filter((ticket) => {
+      return getTicketView(ticket) === ticketView;
+    });
+  }, [tickets, ticketView]);
+
   const statusOptions = useMemo(() => {
-    const values = tickets
+    const values = ticketsForSelectedView
       .map((ticket) => ticket.status)
       .filter(Boolean);
 
@@ -135,10 +211,10 @@ export default function Tickets() {
       "All",
       ...Array.from(new Set(values)).sort(),
     ];
-  }, [tickets]);
+  }, [ticketsForSelectedView]);
 
   const priorityOptions = useMemo(() => {
-    const values = tickets
+    const values = ticketsForSelectedView
       .map((ticket) => ticket.priority)
       .filter(Boolean);
 
@@ -155,10 +231,10 @@ export default function Tickets() {
         },
       ),
     ];
-  }, [tickets]);
+  }, [ticketsForSelectedView]);
 
   const departmentOptions = useMemo(() => {
-    const values = tickets
+    const values = ticketsForSelectedView
       .map(getDepartment)
       .filter(Boolean);
 
@@ -166,10 +242,10 @@ export default function Tickets() {
       "All",
       ...Array.from(new Set(values)).sort(),
     ];
-  }, [tickets]);
+  }, [ticketsForSelectedView]);
 
   const ownerOptions = useMemo(() => {
-    const values = tickets
+    const values = ticketsForSelectedView
       .map(getAssignedAgent)
       .filter(Boolean);
 
@@ -177,7 +253,7 @@ export default function Tickets() {
       "All",
       ...Array.from(new Set(values)).sort(),
     ];
-  }, [tickets]);
+  }, [ticketsForSelectedView]);
 
   const ticketStatistics = useMemo(() => {
     const total = tickets.length;
@@ -240,7 +316,8 @@ export default function Tickets() {
     const normalizedSearch =
       normalizeText(searchTerm);
 
-    const matchingTickets = tickets.filter(
+    const matchingTickets =
+      ticketsForSelectedView.filter(
       (ticket) => {
         const searchableValues = [
           getTicketNumber(ticket),
@@ -350,7 +427,7 @@ export default function Tickets() {
       },
     );
   }, [
-    tickets,
+    ticketsForSelectedView,
     searchTerm,
     statusFilter,
     priorityFilter,
@@ -369,6 +446,7 @@ export default function Tickets() {
   useEffect(() => {
     setCurrentPage(1);
   }, [
+    ticketView,
     searchTerm,
     statusFilter,
     priorityFilter,
@@ -402,6 +480,17 @@ export default function Tickets() {
     startIndex + ITEMS_PER_PAGE,
     filteredTickets.length,
   );
+
+  const activeViewLabel =
+    TICKET_VIEW_OPTIONS.find((option) => {
+      return option.key === ticketView;
+    })?.label || "Tickets";
+
+  const handleTicketViewChange = (view) => {
+    setTicketView(view);
+    setStatusFilter("All");
+    setCurrentPage(1);
+  };
 
   const handleViewTicket = (ticket) => {
     const routeId =
@@ -597,6 +686,40 @@ export default function Tickets() {
       </section>
 
       <section className="crm-ticket-workspace">
+        <div
+          className="crm-ticket-view-tabs"
+          role="tablist"
+          aria-label="Ticket views"
+        >
+          {TICKET_VIEW_OPTIONS.map((option) => {
+            const isActive =
+              ticketView === option.key;
+
+            return (
+              <button
+                type="button"
+                key={option.key}
+                role="tab"
+                aria-selected={isActive}
+                className={`crm-ticket-view-tab crm-ticket-view-tab-${option.key} ${
+                  isActive ? "active" : ""
+                }`}
+                onClick={() =>
+                  handleTicketViewChange(
+                    option.key,
+                  )
+                }
+              >
+                <span>{option.label}</span>
+
+                <strong>
+                  {ticketViewCounts[option.key]}
+                </strong>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="crm-ticket-toolbar">
           <div className="crm-ticket-search">
             <label htmlFor="ticket-search">
@@ -794,13 +917,15 @@ export default function Tickets() {
         <div className="crm-ticket-list-card">
           <div className="crm-ticket-list-header">
             <div>
-              <h2>All tickets</h2>
+              <h2>
+                {activeViewLabel} tickets
+              </h2>
 
               <p>
                 Showing {visibleStart}–
                 {visibleEnd} of{" "}
                 {filteredTickets.length} matching
-                tickets
+                tickets in this view
               </p>
             </div>
 

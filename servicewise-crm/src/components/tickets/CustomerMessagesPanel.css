@@ -531,3 +531,18 @@
     width: 100%;
   }
 }
+
+.crm-collapsible-wrapper
+  .customer-messages-header {
+  display: none;
+}
+
+.crm-collapsible-wrapper
+  .customer-messages-panel {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+
+

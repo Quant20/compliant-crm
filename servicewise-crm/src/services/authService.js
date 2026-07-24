@@ -8,26 +8,56 @@ const SESSION_KEY = "servicewise_auth_session";
 const CURRENT_USER_KEY = "servicewise_current_user";
 const AUTH_EVENT = "servicewise-auth-change";
 
+/*
+  Development-only local passwords.
+
+  Remove this local fallback before production.
+*/
 const DEMO_PASSWORDS = {
   "admin@servicewise.com": "admin123",
-  "zubair@servicewise.com": "agent123",
+  "yawar@servicewise.com": "agent123",
+  "mahendar@servicewise.com": "servicewise123",
+  "krishna@servicewise.com": "servicewise123",
+  "faizan@servicewise.com": "servicewise123",
+  "zubair@servicewise.com": "servicewise123",
+  "afzal@servicewise.com": "servicewise123",
 };
 
-const normalize = (value) =>
-  String(value || "").trim().toLowerCase();
+const normalize = (value) => {
+  return String(value || "")
+    .trim()
+    .toLowerCase();
+};
 
 function createLocalUser(user) {
   return {
     ...user,
-    id: user.id || user.employeeId || user.employee_id,
+
+    id:
+      user.id ||
+      user.employeeId ||
+      user.employee_id,
+
     employeeId:
-      user.employeeId || user.employee_id || String(user.id || ""),
+      user.employeeId ||
+      user.employee_id ||
+      String(user.id || ""),
+
     name:
       user.name ||
-      [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+      [user.firstName, user.lastName]
+        .filter(Boolean)
+        .join(" ") ||
       user.email,
-    role: user.role || "Support Agent",
-    department: user.department || user.team || "Customer Support",
+
+    role:
+      user.role ||
+      "Support Agent",
+
+    department:
+      user.department ||
+      user.team ||
+      "Customer Support",
   };
 }
 
@@ -38,7 +68,10 @@ function readStorage(storage, key) {
 
   try {
     const value = storage.getItem(key);
-    return value ? JSON.parse(value) : null;
+
+    return value
+      ? JSON.parse(value)
+      : null;
   } catch {
     return null;
   }
@@ -56,7 +89,11 @@ function writeSession(session, remember = true) {
   window.localStorage.removeItem(SESSION_KEY);
   window.sessionStorage.removeItem(SESSION_KEY);
 
-  targetStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  targetStorage.setItem(
+    SESSION_KEY,
+    JSON.stringify(session),
+  );
+
   window.localStorage.setItem(
     CURRENT_USER_KEY,
     JSON.stringify(session.user),
@@ -86,26 +123,38 @@ function clearSession() {
 }
 
 function mapSupabaseUser(supabaseUser) {
-  const metadata = supabaseUser?.user_metadata || {};
+  const metadata =
+    supabaseUser?.user_metadata || {};
 
   return {
     id: supabaseUser?.id,
+
     employeeId:
       metadata.employeeId ||
       metadata.employee_id ||
       supabaseUser?.id,
+
     name:
       metadata.name ||
       metadata.full_name ||
       supabaseUser?.email ||
       "ServiceWise User",
-    email: supabaseUser?.email || "",
-    phone: metadata.phone || "",
-    role: metadata.role || "Support Agent",
+
+    email:
+      supabaseUser?.email || "",
+
+    phone:
+      metadata.phone || "",
+
+    role:
+      metadata.role ||
+      "Support Agent",
+
     department:
       metadata.department ||
       metadata.team ||
       "Customer Support",
+
     accountStatus:
       metadata.accountStatus ||
       metadata.account_status ||
@@ -156,6 +205,28 @@ export function getCurrentUser() {
   return getStoredSession()?.user || null;
 }
 
+function findLocalUser(identifier) {
+  return users.find((item) => {
+    const identifiers = [
+      item.email,
+      item.username,
+      item.employeeId,
+      item.employee_id,
+    ]
+      .filter(Boolean)
+      .map(normalize);
+
+    return identifiers.includes(identifier);
+  });
+}
+
+function getLocalPassword(user) {
+  return (
+    DEMO_PASSWORDS[normalize(user.email)] ||
+    "servicewise123"
+  );
+}
+
 function loginWithLocalAccount({
   email,
   password,
@@ -163,16 +234,7 @@ function loginWithLocalAccount({
 }) {
   const identifier = normalize(email);
 
-  const user = users.find((item) => {
-    return [
-      item.email,
-      item.username,
-      item.employeeId,
-      item.employee_id,
-    ]
-      .map(normalize)
-      .includes(identifier);
-  });
+  const user = findLocalUser(identifier);
 
   if (!user) {
     throw new Error(
@@ -181,20 +243,23 @@ function loginWithLocalAccount({
   }
 
   const expectedPassword =
-    DEMO_PASSWORDS[normalize(user.email)] || "servicewise123";
+    getLocalPassword(user);
 
   if (password !== expectedPassword) {
-    throw new Error("The password is incorrect.");
+    throw new Error(
+      "The password is incorrect.",
+    );
   }
 
-  const currentUser = createLocalUser(user);
+  const currentUser =
+    createLocalUser(user);
 
-  if (
-    normalize(
-      currentUser.accountStatus ||
-        currentUser.account_status,
-    ) === "inactive"
-  ) {
+  const accountStatus = normalize(
+    currentUser.accountStatus ||
+      currentUser.account_status,
+  );
+
+  if (accountStatus === "inactive") {
     throw new Error(
       "This account is inactive. Contact your administrator.",
     );
@@ -207,6 +272,7 @@ function loginWithLocalAccount({
   };
 
   writeSession(session, remember);
+
   return session;
 }
 
@@ -222,22 +288,21 @@ export async function login({
   }
 
   if (!String(password || "")) {
-    throw new Error("Enter your password.");
+    throw new Error(
+      "Enter your password.",
+    );
   }
 
   const identifier = normalize(email);
-  const isKnownLocalAccount = users.some((item) => {
-    return [
-      item.email,
-      item.username,
-      item.employeeId,
-      item.employee_id,
-    ]
-      .map(normalize)
-      .includes(identifier);
-  });
 
-  if (isKnownLocalAccount || !isSupabaseConfigured) {
+  const isKnownLocalAccount = Boolean(
+    findLocalUser(identifier),
+  );
+
+  if (
+    isKnownLocalAccount ||
+    !isSupabaseConfigured
+  ) {
     return loginWithLocalAccount({
       email,
       password,
@@ -245,23 +310,37 @@ export async function login({
     });
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const {
+    data,
+    error,
+  } = await supabase.auth.signInWithPassword({
     email: String(email).trim(),
     password,
   });
 
   if (error) {
-    throw new Error(error.message || "Unable to sign in.");
+    throw new Error(
+      error.message ||
+      "Unable to sign in.",
+    );
   }
 
   const session = {
     provider: "supabase",
-    user: mapSupabaseUser(data.user),
-    accessToken: data.session?.access_token || null,
-    createdAt: new Date().toISOString(),
+
+    user:
+      mapSupabaseUser(data.user),
+
+    accessToken:
+      data.session?.access_token ||
+      null,
+
+    createdAt:
+      new Date().toISOString(),
   };
 
   writeSession(session, remember);
+
   return session;
 }
 
@@ -276,16 +355,24 @@ export async function logout() {
 }
 
 export async function refreshSession() {
-  const storedSession = getStoredSession();
+  const storedSession =
+    getStoredSession();
 
   if (!isSupabaseConfigured) {
     return storedSession;
   }
 
-  const { data, error } = await supabase.auth.getSession();
+  const {
+    data,
+    error,
+  } = await supabase.auth.getSession();
 
   if (error) {
-    console.error("Unable to refresh Supabase authentication:", error);
+    console.error(
+      "Unable to refresh Supabase authentication:",
+      error,
+    );
+
     return storedSession;
   }
 
@@ -295,76 +382,126 @@ export async function refreshSession() {
 
   const session = {
     provider: "supabase",
-    user: mapSupabaseUser(data.session.user),
-    accessToken: data.session.access_token,
-    createdAt: new Date().toISOString(),
+
+    user:
+      mapSupabaseUser(
+        data.session.user,
+      ),
+
+    accessToken:
+      data.session.access_token,
+
+    createdAt:
+      new Date().toISOString(),
   };
 
   writeSession(session, true);
+
   return session;
 }
 
-export function subscribeToAuthChanges(callback) {
+export function subscribeToAuthChanges(
+  callback,
+) {
   if (typeof window === "undefined") {
     return () => {};
   }
 
-  const handleCustomEvent = (event) => callback(event.detail);
-  const handleStorage = () => callback(getStoredSession());
+  const handleCustomEvent = (event) => {
+    callback(event.detail);
+  };
 
-  window.addEventListener(AUTH_EVENT, handleCustomEvent);
-  window.addEventListener("storage", handleStorage);
+  const handleStorage = () => {
+    callback(getStoredSession());
+  };
+
+  window.addEventListener(
+    AUTH_EVENT,
+    handleCustomEvent,
+  );
+
+  window.addEventListener(
+    "storage",
+    handleStorage,
+  );
 
   let supabaseSubscription = null;
 
   if (isSupabaseConfigured) {
-    const { data } = supabase.auth.onAuthStateChange(
-      (eventName, supabaseSession) => {
-        if (!supabaseSession?.user) {
-          if (eventName === "SIGNED_OUT") {
-            clearSession();
-            callback(null);
+    const { data } =
+      supabase.auth.onAuthStateChange(
+        (
+          eventName,
+          supabaseSession,
+        ) => {
+          if (!supabaseSession?.user) {
+            if (eventName === "SIGNED_OUT") {
+              clearSession();
+              callback(null);
+            }
+
+            return;
           }
 
-          return;
-        }
+          const session = {
+            provider: "supabase",
 
-        const session = {
-          provider: "supabase",
-          user: mapSupabaseUser(supabaseSession.user),
-          accessToken: supabaseSession.access_token,
-          createdAt: new Date().toISOString(),
-        };
+            user:
+              mapSupabaseUser(
+                supabaseSession.user,
+              ),
 
-        writeSession(session, true);
-        callback(session);
-      },
-    );
+            accessToken:
+              supabaseSession.access_token,
 
-    supabaseSubscription = data.subscription;
+            createdAt:
+              new Date().toISOString(),
+          };
+
+          writeSession(session, true);
+
+          callback(session);
+        },
+      );
+
+    supabaseSubscription =
+      data.subscription;
   }
 
   return () => {
-    window.removeEventListener(AUTH_EVENT, handleCustomEvent);
-    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener(
+      AUTH_EVENT,
+      handleCustomEvent,
+    );
+
+    window.removeEventListener(
+      "storage",
+      handleStorage,
+    );
+
     supabaseSubscription?.unsubscribe();
   };
 }
 
-export const DEMO_ACCOUNTS = [
-  {
-    label: "Administrator",
-    email: "admin@servicewise.com",
-    password: "admin123",
-    role: "Admin",
+export const DEMO_ACCOUNTS = users.map(
+  (user) => {
+    return {
+      label:
+        user.name ||
+        user.email,
+
+      email:
+        user.email,
+
+      password:
+        getLocalPassword(user),
+
+      role:
+        user.role ||
+        "Support Agent",
+    };
   },
-  {
-    label: "Support Agent",
-    email: "zubair@servicewise.com",
-    password: "agent123",
-    role: "Support Agent",
-  },
-];
+);
 
 export default {
   login,
