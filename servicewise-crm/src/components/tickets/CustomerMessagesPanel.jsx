@@ -5,12 +5,13 @@ import {
 } from "react";
 
 import {
+  FaChevronDown,
+  FaChevronRight,
   FaComments,
   FaEnvelope,
   FaGlobe,
   FaPaperPlane,
   FaPhone,
-  FaUser,
   FaUsers,
   FaWhatsapp,
 } from "react-icons/fa";
@@ -44,7 +45,7 @@ const getTicketChannel = (ticket) => {
 
   if (
     rawChannel.includes("whatsapp") ||
-    rawChannel.includes("wa")
+    rawChannel === "wa"
   ) {
     return "whatsapp";
   }
@@ -78,11 +79,11 @@ const getChannelLabel = (channel) => {
     whatsapp: "WhatsApp",
     email: "Email",
     phone: "Phone",
-    web: "Web Form",
-    manual: "Manual Entry",
+    web: "Web form",
+    manual: "Manual log",
   };
 
-  return labels[channel] || "Manual Entry";
+  return labels[channel] || "Manual log";
 };
 
 const getChannelIcon = (channel) => {
@@ -101,22 +102,6 @@ const getChannelIcon = (channel) => {
   return <FaGlobe />;
 };
 
-const formatMessageTime = (message) =>
-  firstValue(
-    message?.time,
-    message?.createdAt,
-    message?.created_at,
-    "",
-  );
-
-const getMessageText = (message) =>
-  firstValue(
-    message?.message,
-    message?.text,
-    message?.body,
-    "",
-  );
-
 const getMessageChannel = (message) => {
   const channel = normalizeValue(
     firstValue(
@@ -131,7 +116,10 @@ const getMessageChannel = (message) => {
     return "whatsapp";
   }
 
-  if (channel.includes("email")) {
+  if (
+    channel.includes("email") ||
+    channel.includes("mail")
+  ) {
     return "email";
   }
 
@@ -142,8 +130,24 @@ const getMessageChannel = (message) => {
     return "phone";
   }
 
+  if (
+    channel.includes("web") ||
+    channel.includes("form")
+  ) {
+    return "web";
+  }
+
   return "manual";
 };
+
+const getMessageText = (message) =>
+  firstValue(
+    message?.message,
+    message?.text,
+    message?.body,
+    message?.content,
+    "",
+  );
 
 const getSenderName = (message) =>
   firstValue(
@@ -160,6 +164,14 @@ const getSenderRole = (message) =>
     message?.sender_role,
     message?.participantRole,
     message?.participant_role,
+    "",
+  );
+
+const getMessageDateValue = (message) =>
+  firstValue(
+    message?.createdAt,
+    message?.created_at,
+    message?.time,
     "",
   );
 
@@ -193,7 +205,7 @@ const getStatusLabel = (message) => {
     ),
   );
 
-  const statusLabels = {
+  const labels = {
     saved_only: "Saved only",
     queued: "Queued",
     sent: "Sent",
@@ -203,8 +215,50 @@ const getStatusLabel = (message) => {
     saved: "Saved",
   };
 
-  return statusLabels[status] || status;
+  return labels[status] || status;
 };
+
+const formatMessageTime = (message) => {
+  const value = getMessageDateValue(message);
+
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+
+  return date.toLocaleString("en-PK", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const sortMessages = (messages) =>
+  [...messages].sort((first, second) => {
+    const firstDate = new Date(
+      getMessageDateValue(first),
+    ).getTime();
+
+    const secondDate = new Date(
+      getMessageDateValue(second),
+    ).getTime();
+
+    if (
+      Number.isNaN(firstDate) ||
+      Number.isNaN(secondDate)
+    ) {
+      return 0;
+    }
+
+    return firstDate - secondDate;
+  });
 
 export default function CustomerMessagesPanel({
   ticket,
@@ -216,15 +270,21 @@ export default function CustomerMessagesPanel({
 }) {
   const ticketChannel = getTicketChannel(ticket);
 
+  /*
+   * This section is intentionally minimized by default.
+   */
+  const [isExpanded, setIsExpanded] =
+    useState(false);
+
   const [channelFilter, setChannelFilter] =
     useState("all");
 
+  /*
+   * No composer is shown until the agent chooses
+   * WhatsApp or Manual Log.
+   */
   const [composeMode, setComposeMode] =
-    useState(
-      ticketChannel === "whatsapp"
-        ? "whatsapp"
-        : "manual",
-    );
+    useState("");
 
   const [draft, setDraft] = useState("");
   const [sending, setSending] =
@@ -232,18 +292,34 @@ export default function CustomerMessagesPanel({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setComposeMode(
-      ticketChannel === "whatsapp"
-        ? "whatsapp"
-        : "manual",
-    );
-  }, [ticketChannel]);
+    setChannelFilter("all");
+    setComposeMode("");
+    setDraft("");
+    setError("");
+    setIsExpanded(false);
+  }, [ticket?.id]);
 
   const customerPhone = firstValue(
     ticket?.customer?.phone,
     ticket?.customerPhone,
     ticket?.customer_phone,
-    "N/A",
+    "Not available",
+  );
+
+  const resolvedCustomerEmail = firstValue(
+    customerEmail,
+    ticket?.customer?.email,
+    ticket?.customerEmail,
+    ticket?.customer_email,
+    "Not available",
+  );
+
+  const ticketSubject = firstValue(
+    ticket?.emailSubject,
+    ticket?.email_subject,
+    ticket?.subject,
+    ticket?.title,
+    "Customer communication",
   );
 
   const businessNumber = firstValue(
@@ -277,17 +353,77 @@ export default function CustomerMessagesPanel({
       ticket?.whatsapp_connected,
   );
 
+  const sortedMessages = useMemo(
+    () => sortMessages(messages),
+    [messages],
+  );
+
+  const availableChannels = useMemo(
+    () =>
+      [
+        ...new Set(
+          sortedMessages.map(
+            getMessageChannel,
+          ),
+        ),
+      ],
+    [sortedMessages],
+  );
+
   const filteredMessages = useMemo(() => {
     if (channelFilter === "all") {
-      return messages;
+      return sortedMessages;
     }
 
-    return messages.filter(
+    return sortedMessages.filter(
       (message) =>
         getMessageChannel(message) ===
         channelFilter,
     );
-  }, [messages, channelFilter]);
+  }, [sortedMessages, channelFilter]);
+
+  const latestMessage =
+    sortedMessages.length > 0
+      ? sortedMessages[
+          sortedMessages.length - 1
+        ]
+      : null;
+
+  const latestMessageChannel =
+    latestMessage
+      ? getMessageChannel(latestMessage)
+      : ticketChannel;
+
+  const latestSender = latestMessage
+    ? getSenderName(latestMessage)
+    : "";
+
+  const latestTime = latestMessage
+    ? formatMessageTime(latestMessage)
+    : "";
+
+  const handleToggleExpanded = () => {
+    setIsExpanded((current) => !current);
+  };
+
+  const handleEmailAction = () => {
+    setComposeMode("");
+    setDraft("");
+    setError("");
+
+    if (typeof onOpenEmail === "function") {
+      onOpenEmail();
+    }
+  };
+
+  const handleComposeMode = (mode) => {
+    setComposeMode((current) =>
+      current === mode ? "" : mode,
+    );
+
+    setDraft("");
+    setError("");
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -315,38 +451,47 @@ export default function CustomerMessagesPanel({
 
     const messageData = {
       id: Date.now(),
+
       sender: currentAgentName,
       senderName: currentAgentName,
       senderRole: "Support Agent",
+
       direction: "outbound",
+
       channel:
         composeMode === "whatsapp"
           ? "whatsapp"
           : "manual",
+
       conversationType:
         composeMode === "whatsapp"
           ? chatType
           : "direct",
+
       groupName:
         composeMode === "whatsapp" &&
         chatType === "group"
           ? groupName
           : "",
+
       businessNumber:
         composeMode === "whatsapp"
           ? businessNumber
           : "",
+
       message: cleanMessage,
       body: cleanMessage,
-      time: now.toLocaleString("en-GB", {
-        year: "numeric",
-        month: "2-digit",
+
+      time: now.toLocaleString("en-PK", {
         day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-        hour12: false,
       }),
+
       createdAt: now.toISOString(),
+
       deliveryStatus:
         composeMode === "whatsapp"
           ? whatsappConnected
@@ -357,7 +502,9 @@ export default function CustomerMessagesPanel({
 
     try {
       await onSendMessage(messageData);
+
       setDraft("");
+      setComposeMode("");
     } catch (sendError) {
       console.error(
         "Unable to add customer message:",
@@ -373,7 +520,7 @@ export default function CustomerMessagesPanel({
     }
   };
 
-  const renderChannelSummary = () => {
+  const renderRouteSummary = () => {
     if (ticketChannel === "email") {
       return (
         <div className="communication-route-card email">
@@ -382,35 +529,37 @@ export default function CustomerMessagesPanel({
           </div>
 
           <div className="communication-route-details">
-            <span>Email conversation</span>
+            <span>Primary communication</span>
 
-            <strong>
-              {ticket?.emailSubject ||
-                ticket?.email_subject ||
-                ticket?.subject ||
-                "Customer email"}
-            </strong>
+            <strong>{ticketSubject}</strong>
 
             <small>
-              From: {customerEmail || "N/A"}
+              Customer email:{" "}
+              {resolvedCustomerEmail}
             </small>
 
             <small>
-              Thread ID:{" "}
-              {ticket?.emailThreadId ||
-                ticket?.email_thread_id ||
-                ticket?.threadId ||
-                ticket?.thread_id ||
-                "Not linked yet"}
+              {messages.length > 0
+                ? `${messages.length} saved ${
+                    messages.length === 1
+                      ? "message"
+                      : "messages"
+                  } in this ticket`
+                : "Email thread linked; no individual messages have been saved in the CRM yet"}
             </small>
           </div>
 
           <button
             type="button"
-            onClick={onOpenEmail}
-            disabled={!customerEmail}
+            onClick={handleEmailAction}
+            disabled={
+              !resolvedCustomerEmail ||
+              resolvedCustomerEmail ===
+                "Not available"
+            }
           >
-            Reply
+            <FaEnvelope />
+            Compose email
           </button>
         </div>
       );
@@ -420,20 +569,11 @@ export default function CustomerMessagesPanel({
       return (
         <div className="communication-route-card whatsapp">
           <div className="communication-route-icon">
-            {chatType === "group" ? (
-              <FaUsers />
-            ) : (
-              <FaUser />
-            )}
+            <FaWhatsapp />
           </div>
 
           <div className="communication-route-details">
-            <span>
-              WhatsApp{" "}
-              {chatType === "group"
-                ? "group"
-                : "direct chat"}
-            </span>
+            <span>Primary communication</span>
 
             <strong>
               {chatType === "group"
@@ -442,14 +582,28 @@ export default function CustomerMessagesPanel({
             </strong>
 
             <small>
-              Business number: {businessNumber}
+              {chatType === "group"
+                ? `WhatsApp group conversation · ${businessNumber}`
+                : `Customer WhatsApp · ${customerPhone}`}
+            </small>
+
+            <small>
+              {whatsappConnected
+                ? "WhatsApp integration is connected"
+                : "Messages can be recorded, but direct sending is not connected"}
             </small>
           </div>
 
-          <span className="communication-route-status">
+          <span
+            className={`communication-route-status ${
+              whatsappConnected
+                ? "connected"
+                : "not-connected"
+            }`}
+          >
             {whatsappConnected
               ? "Connected"
-              : "Not connected"}
+              : "Save only"}
           </span>
         </div>
       );
@@ -463,11 +617,16 @@ export default function CustomerMessagesPanel({
           </div>
 
           <div className="communication-route-details">
-            <span>Phone complaint</span>
+            <span>Primary communication</span>
+
             <strong>{customerPhone}</strong>
+
             <small>
-              Calls and manual summaries appear in
-              this history.
+              Phone conversation associated with this ticket
+            </small>
+
+            <small>
+              Use Manual Log to record a call summary or outcome
             </small>
           </div>
         </div>
@@ -477,21 +636,20 @@ export default function CustomerMessagesPanel({
     return (
       <div className="communication-route-card general">
         <div className="communication-route-icon">
-          <FaComments />
+          <FaGlobe />
         </div>
 
         <div className="communication-route-details">
-          <span>
-            {getChannelLabel(ticketChannel)}
-          </span>
+          <span>Primary communication</span>
 
           <strong>
-            Customer communication history
+            {getChannelLabel(ticketChannel)}
           </strong>
 
+          <small>{ticketSubject}</small>
+
           <small>
-            Email, WhatsApp and manual records can
-            be linked with this ticket.
+            Record relevant customer contact in the timeline below
           </small>
         </div>
       </div>
@@ -499,308 +657,403 @@ export default function CustomerMessagesPanel({
   };
 
   return (
-    <section className="customer-messages-panel">
-      <header className="customer-messages-header">
-        <div>
-          <h2>Customer Messages</h2>
+    <section
+      className={`customer-messages-panel ${
+        isExpanded
+          ? "customer-messages-panel--expanded"
+          : "customer-messages-panel--collapsed"
+      }`}
+    >
+      <button
+        type="button"
+        className="customer-messages-header"
+        onClick={handleToggleExpanded}
+        aria-expanded={isExpanded}
+      >
+        <div className="customer-messages-header-copy">
+          <div className="customer-messages-title-row">
+            <h2>Customer Messages</h2>
+
+            <span
+              className={`customer-message-source channel-${ticketChannel}`}
+            >
+              {getChannelIcon(ticketChannel)}
+              {getChannelLabel(ticketChannel)}
+            </span>
+          </div>
 
           <p>
-            Communication history across email,
-            WhatsApp, phone and manual follow-ups.
+            {messages.length > 0
+              ? `${messages.length} saved ${
+                  messages.length === 1
+                    ? "message"
+                    : "messages"
+                }${
+                  latestSender
+                    ? ` · Latest from ${latestSender}`
+                    : ""
+                }${
+                  latestTime
+                    ? ` · ${latestTime}`
+                    : ""
+                }`
+              : `${ticketSubject} · No saved message entries yet`}
           </p>
         </div>
 
-        <span
-          className={`customer-message-source channel-${ticketChannel}`}
-        >
-          {getChannelIcon(ticketChannel)}
-          {getChannelLabel(ticketChannel)}
+        <span className="customer-messages-toggle">
+          {isExpanded ? (
+            <>
+              Minimize
+              <FaChevronDown />
+            </>
+          ) : (
+            <>
+              Open
+              <FaChevronRight />
+            </>
+          )}
         </span>
-      </header>
+      </button>
 
-      {renderChannelSummary()}
+      {isExpanded && (
+        <div className="customer-messages-content">
+          {renderRouteSummary()}
 
-      <div className="customer-message-filters">
-        <button
-          type="button"
-          className={
-            channelFilter === "all"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            setChannelFilter("all")
-          }
-        >
-          All
-        </button>
+          <div className="customer-message-actions">
+            <span className="customer-message-actions-label">
+              Add communication
+            </span>
 
-        <button
-          type="button"
-          className={
-            channelFilter === "email"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            setChannelFilter("email")
-          }
-        >
-          <FaEnvelope />
-          Email
-        </button>
+            <button
+              type="button"
+              className="customer-message-email-action"
+              onClick={handleEmailAction}
+              disabled={
+                !resolvedCustomerEmail ||
+                resolvedCustomerEmail ===
+                  "Not available"
+              }
+            >
+              <FaEnvelope />
+              Compose email
+            </button>
 
-        <button
-          type="button"
-          className={
-            channelFilter === "whatsapp"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            setChannelFilter("whatsapp")
-          }
-        >
-          <FaWhatsapp />
-          WhatsApp
-        </button>
+            <button
+              type="button"
+              className={
+                composeMode === "whatsapp"
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                handleComposeMode("whatsapp")
+              }
+            >
+              <FaWhatsapp />
+              WhatsApp
+            </button>
 
-        <button
-          type="button"
-          className={
-            channelFilter === "phone"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            setChannelFilter("phone")
-          }
-        >
-          <FaPhone />
-          Phone
-        </button>
+            <button
+              type="button"
+              className={
+                composeMode === "manual"
+                  ? "active"
+                  : ""
+              }
+              onClick={() =>
+                handleComposeMode("manual")
+              }
+            >
+              <FaComments />
+              Manual log
+            </button>
+          </div>
 
-        <button
-          type="button"
-          className={
-            channelFilter === "manual"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            setChannelFilter("manual")
-          }
-        >
-          Manual
-        </button>
-      </div>
+          {availableChannels.length > 1 && (
+            <div className="customer-message-filters">
+              <span>Show</span>
 
-      <div className="customer-message-list">
-        {filteredMessages.length > 0 ? (
-          filteredMessages.map((message) => {
-            const channel =
-              getMessageChannel(message);
-            const sender =
-              getSenderName(message);
-            const senderRole =
-              getSenderRole(message);
-            const outbound =
-              isOutboundMessage(message);
-            const status =
-              getStatusLabel(message);
-
-            return (
-              <article
-                key={
-                  message.id ||
-                  `${sender}-${formatMessageTime(
-                    message,
-                  )}`
+              <button
+                type="button"
+                className={
+                  channelFilter === "all"
+                    ? "active"
+                    : ""
                 }
-                className={`customer-message-card ${
-                  outbound
-                    ? "outbound"
-                    : "inbound"
-                }`}
+                onClick={() =>
+                  setChannelFilter("all")
+                }
               >
-                <div className="customer-message-meta">
-                  <div>
-                    <strong>{sender}</strong>
+                All
+                <small>
+                  {sortedMessages.length}
+                </small>
+              </button>
 
-                    {senderRole && (
-                      <span className="sender-role">
-                        {senderRole}
-                      </span>
-                    )}
-                  </div>
+              {availableChannels.map(
+                (channel) => {
+                  const channelCount =
+                    sortedMessages.filter(
+                      (message) =>
+                        getMessageChannel(
+                          message,
+                        ) === channel,
+                    ).length;
 
-                  <div className="message-source-meta">
-                    <span
-                      className={`message-channel channel-${channel}`}
+                  return (
+                    <button
+                      type="button"
+                      key={channel}
+                      className={
+                        channelFilter ===
+                        channel
+                          ? "active"
+                          : ""
+                      }
+                      onClick={() =>
+                        setChannelFilter(
+                          channel,
+                        )
+                      }
                     >
                       {getChannelIcon(channel)}
                       {getChannelLabel(channel)}
-                    </span>
-
-                    <time>
-                      {formatMessageTime(message)}
-                    </time>
-                  </div>
-                </div>
-
-                {channel === "whatsapp" &&
-                  (message.groupName ||
-                    message.group_name) && (
-                    <div className="message-group-name">
-                      <FaUsers />
-                      {message.groupName ||
-                        message.group_name}
-                    </div>
-                  )}
-
-                <p>{getMessageText(message)}</p>
-
-                {status && outbound && (
-                  <div className="message-delivery-status">
-                    {status}
-                  </div>
-                )}
-              </article>
-            );
-          })
-        ) : (
-          <div className="customer-messages-empty">
-            <FaComments />
-
-            <h3>No messages in this view</h3>
-
-            <p>
-              Incoming email, WhatsApp and manual
-              communication records will appear
-              here.
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="customer-message-actions">
-        <button
-          type="button"
-          className="customer-message-email-action"
-          onClick={onOpenEmail}
-          disabled={!customerEmail}
-        >
-          <FaEnvelope />
-          Compose Email
-        </button>
-
-        <button
-          type="button"
-          className={
-            composeMode === "whatsapp"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            setComposeMode("whatsapp")
-          }
-        >
-          <FaWhatsapp />
-          WhatsApp
-        </button>
-
-        <button
-          type="button"
-          className={
-            composeMode === "manual"
-              ? "active"
-              : ""
-          }
-          onClick={() =>
-            setComposeMode("manual")
-          }
-        >
-          Manual Log
-        </button>
-      </div>
-
-      <form
-        className="customer-message-composer"
-        onSubmit={handleSubmit}
-      >
-        <div className="message-composer-heading">
-          <div>
-            <h3>
-              {composeMode === "whatsapp"
-                ? "WhatsApp message"
-                : "Add manual communication record"}
-            </h3>
-
-            <p>
-              {composeMode === "whatsapp"
-                ? chatType === "group"
-                  ? `Destination: ${groupName}`
-                  : `Destination: ${customerPhone}`
-                : "Use this when communication happened outside the CRM."}
-            </p>
-          </div>
-        </div>
-
-        {!whatsappConnected &&
-          composeMode === "whatsapp" && (
-            <div className="whatsapp-integration-warning">
-              WhatsApp is not connected yet. This
-              entry will be saved in ticket history
-              but will not be sent.
+                      <small>{channelCount}</small>
+                    </button>
+                  );
+                },
+              )}
             </div>
           )}
 
-        {error && (
-          <div
-            className="customer-message-error"
-            role="alert"
-          >
-            {error}
-          </div>
-        )}
+          {filteredMessages.length > 0 ? (
+            <div className="customer-message-list">
+              {filteredMessages.map(
+                (message, index) => {
+                  const channel =
+                    getMessageChannel(message);
 
-        <textarea
-          value={draft}
-          onChange={(event) => {
-            setDraft(event.target.value);
-            setError("");
-          }}
-          placeholder={
-            composeMode === "whatsapp"
-              ? "Write the WhatsApp message..."
-              : "Write the message or call summary..."
-          }
-        />
+                  const outbound =
+                    isOutboundMessage(message);
 
-        <div className="customer-message-composer-footer">
-          <span>
-            {composeMode === "whatsapp"
-              ? `From ${businessNumber}`
-              : "Saved as an internal communication record"}
-          </span>
+                  const sender =
+                    getSenderName(message);
 
-          <button
-            type="submit"
-            disabled={
-              !draft.trim() || sending
-            }
-          >
-            <FaPaperPlane />
+                  const senderRole =
+                    getSenderRole(message);
 
-            {sending
-              ? "Saving..."
-              : composeMode === "whatsapp" &&
-                  whatsappConnected
-                ? "Queue WhatsApp Message"
-                : "Save to History"}
-          </button>
+                  const messageText =
+                    getMessageText(message);
+
+                  const status =
+                    getStatusLabel(message);
+
+                  const messageTime =
+                    formatMessageTime(message);
+
+                  return (
+                    <article
+                      className={`customer-message-card ${
+                        outbound
+                          ? "outbound"
+                          : "inbound"
+                      }`}
+                      key={
+                        message?.id ||
+                        `${messageTime}-${index}`
+                      }
+                    >
+                      <header className="customer-message-meta">
+                        <div>
+                          <strong>{sender}</strong>
+
+                          {senderRole && (
+                            <span className="sender-role">
+                              {senderRole}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="message-source-meta">
+                          <span
+                            className={`message-channel channel-${channel}`}
+                          >
+                            {getChannelIcon(channel)}
+                            {getChannelLabel(channel)}
+                          </span>
+
+                          {messageTime && (
+                            <time>
+                              {messageTime}
+                            </time>
+                          )}
+                        </div>
+                      </header>
+
+                      {message?.groupName && (
+                        <div className="message-group-name">
+                          <FaUsers />
+                          {message.groupName}
+                        </div>
+                      )}
+
+                      <p>
+                        {messageText ||
+                          "No message text was recorded."}
+                      </p>
+
+                      {status && (
+                        <div className="message-delivery-status">
+                          {status}
+                        </div>
+                      )}
+                    </article>
+                  );
+                },
+              )}
+            </div>
+          ) : (
+            <div className="customer-messages-empty">
+              <FaComments />
+
+              <div>
+                <h3>
+                  No saved messages yet
+                </h3>
+
+                <p>
+                  {ticketChannel === "email"
+                    ? "The email conversation is linked to this ticket. Use Compose Email to respond, or Manual Log to record an offline update."
+                    : "Use one of the communication actions above to add the first relevant customer update."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {composeMode && (
+            <form
+              className="customer-message-composer"
+              onSubmit={handleSubmit}
+            >
+              <div className="message-composer-heading">
+                <div>
+                  {composeMode === "whatsapp" ? (
+                    <FaWhatsapp />
+                  ) : (
+                    <FaComments />
+                  )}
+                </div>
+
+                <div>
+                  <h3>
+                    {composeMode === "whatsapp"
+                      ? "WhatsApp message"
+                      : "Manual communication log"}
+                  </h3>
+
+                  <p>
+                    {composeMode === "whatsapp"
+                      ? whatsappConnected
+                        ? `Message will be queued through ${businessNumber}.`
+                        : "WhatsApp is not connected. This message will be saved in the CRM history only."
+                      : "Record a useful call summary, offline response or customer update."}
+                  </p>
+                </div>
+              </div>
+
+              {composeMode === "whatsapp" &&
+                !whatsappConnected && (
+                  <div className="whatsapp-integration-warning">
+                    Direct WhatsApp sending is not connected. Saving this entry will not send a message to the customer.
+                  </div>
+                )}
+
+              {error && (
+                <div className="customer-message-error">
+                  {error}
+                </div>
+              )}
+
+              <textarea
+                value={draft}
+                onChange={(event) => {
+                  setDraft(
+                    event.target.value,
+                  );
+                  setError("");
+                }}
+                placeholder={
+                  composeMode === "whatsapp"
+                    ? "Write the WhatsApp message..."
+                    : "Write a clear summary of the communication..."
+                }
+                disabled={sending}
+                autoFocus
+              />
+
+              <div className="customer-message-composer-footer">
+                <span>
+                  {composeMode === "manual"
+                    ? "Visible internally in this ticket history."
+                    : whatsappConnected
+                      ? "The delivery status will be recorded."
+                      : "This will be saved only."}
+                </span>
+
+                <button
+                  type="button"
+                  className="customer-message-composer-cancel"
+                  onClick={() => {
+                    setComposeMode("");
+                    setDraft("");
+                    setError("");
+                  }}
+                  disabled={sending}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={
+                    !draft.trim() || sending
+                  }
+                >
+                  <FaPaperPlane />
+
+                  {sending
+                    ? "Saving..."
+                    : composeMode ===
+                        "whatsapp"
+                      ? whatsappConnected
+                        ? "Queue message"
+                        : "Save to history"
+                      : "Save log"}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {latestMessage && (
+            <div className="customer-message-latest-summary">
+              <span>
+                Latest communication
+              </span>
+
+              <strong>
+                {getChannelLabel(
+                  latestMessageChannel,
+                )}
+              </strong>
+
+              <p>
+                {getMessageText(latestMessage)}
+              </p>
+            </div>
+          )}
         </div>
-      </form>
+      )}
     </section>
   );
 }

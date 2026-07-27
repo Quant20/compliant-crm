@@ -37,6 +37,41 @@ function getTicketNumber(ticket) {
   );
 }
 
+function getTicketSubject(ticket) {
+  return (
+    ticket?.subject ||
+    ticket?.title ||
+    "Customer complaint"
+  );
+}
+
+function getTicketDescription(ticket) {
+  return (
+    ticket?.description ||
+    ticket?.issue ||
+    ticket?.message ||
+    ""
+  );
+}
+
+function getAssignedAgent(ticket) {
+  return (
+    ticket?.assignedAgent?.name ||
+    ticket?.assignedAgent ||
+    ticket?.assigned_agent ||
+    "Support team"
+  );
+}
+
+function getAssignedDepartment(ticket) {
+  return (
+    ticket?.department ||
+    ticket?.assignedDepartment ||
+    ticket?.assigned_department ||
+    "Relevant department"
+  );
+}
+
 function runEditorCommand(command) {
   document.execCommand(command, false);
 }
@@ -59,6 +94,26 @@ export default function NoteComposerModal({
     [ticket],
   );
 
+  const ticketSubject = useMemo(
+    () => getTicketSubject(ticket),
+    [ticket],
+  );
+
+  const ticketDescription = useMemo(
+    () => getTicketDescription(ticket),
+    [ticket],
+  );
+
+  const assignedAgent = useMemo(
+    () => getAssignedAgent(ticket),
+    [ticket],
+  );
+
+  const assignedDepartment = useMemo(
+    () => getAssignedDepartment(ticket),
+    [ticket],
+  );
+
   const [isExpanded, setIsExpanded] =
     useState(false);
 
@@ -70,10 +125,23 @@ export default function NoteComposerModal({
 
   const [error, setError] = useState("");
 
+  const [
+    showHelpWriter,
+    setShowHelpWriter,
+  ] = useState(false);
+
+  const [
+    helpWriterInstruction,
+    setHelpWriterInstruction,
+  ] = useState("");
+
   useEffect(() => {
     const handleEscape = (event) => {
-      if (event.key === "Escape") {
-        onClose();
+      if (
+        event.key === "Escape" &&
+        !isSaving
+      ) {
+        onClose?.();
       }
     };
 
@@ -85,7 +153,8 @@ export default function NoteComposerModal({
       handleEscape,
     );
 
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow =
+      "hidden";
 
     const focusTimer = window.setTimeout(() => {
       editorRef.current?.focus();
@@ -102,20 +171,212 @@ export default function NoteComposerModal({
       document.body.style.overflow =
         previousOverflow;
     };
-  }, [onClose]);
+  }, [onClose, isSaving]);
 
   const applyCommand = (command) => {
     editorRef.current?.focus();
     runEditorCommand(command);
   };
 
-  const handleEditorInput = () => {
+  const updateContentState = () => {
     const text =
       editorRef.current?.innerText?.trim() ||
       "";
 
     setHasContent(Boolean(text));
     setError("");
+  };
+
+  const handleEditorInput = () => {
+    updateContentState();
+  };
+
+  const setEditorText = (text) => {
+    if (!editorRef.current) {
+      return;
+    }
+
+    editorRef.current.innerText = text;
+    setHasContent(Boolean(text.trim()));
+    setError("");
+    setShowHelpWriter(false);
+
+    window.setTimeout(() => {
+      editorRef.current?.focus();
+    }, 0);
+  };
+
+  const handleCreateNoteDraft = () => {
+    const request =
+      helpWriterInstruction.trim();
+
+    const normalizedRequest =
+      request.toLowerCase();
+
+    const existingText =
+      editorRef.current?.innerText?.trim() ||
+      "";
+
+    const status =
+      ticket?.status || "Open";
+
+    const priority =
+      ticket?.priority || "Normal";
+
+    let draft = `Issue:
+${ticketSubject}
+
+Current status:
+The complaint is currently under review.
+
+Action taken:
+The case has been reviewed and the available ticket information has been checked.
+
+Next action:
+Follow up with ${assignedDepartment} and update the customer when confirmation is received.
+
+Reference:
+${ticketNumber}`;
+
+    if (
+      normalizedRequest.includes("summar") ||
+      normalizedRequest.includes("overview")
+    ) {
+      draft = `Ticket summary:
+
+• Reference: ${ticketNumber}
+• Customer: ${customerName}
+• Issue: ${ticketSubject}
+• Status: ${status}
+• Priority: ${priority}
+• Assigned to: ${assignedAgent}
+• Department: ${assignedDepartment}${
+        ticketDescription
+          ? `\n• Details: ${ticketDescription}`
+          : ""
+      }
+
+Next action:
+Review the case with ${assignedDepartment} and record the confirmed outcome.`;
+    } else if (
+      normalizedRequest.includes("payment") ||
+      normalizedRequest.includes("transaction") ||
+      normalizedRequest.includes("refund") ||
+      normalizedRequest.includes("reversal")
+    ) {
+      draft = `Customer reported a payment-related issue under ${ticketNumber}.
+
+The transaction details require verification with ${assignedDepartment}. The case remains under review, and no final outcome has been confirmed yet.
+
+Next action:
+Verify the transaction status, reconciliation record and reference details before updating the customer.`;
+    } else if (
+      normalizedRequest.includes("escalat") ||
+      normalizedRequest.includes("urgent") ||
+      normalizedRequest.includes("priority")
+    ) {
+      draft = `${ticketNumber} has been escalated to ${assignedDepartment} due to the pending ${ticketSubject.toLowerCase()}.
+
+Current status: ${status}
+Priority: ${priority}
+
+Next action:
+The assigned team should review the case on priority and provide a confirmed update for the customer.`;
+    } else if (
+      normalizedRequest.includes("follow") ||
+      normalizedRequest.includes("pending") ||
+      normalizedRequest.includes("waiting")
+    ) {
+      draft = `Follow-up note for ${ticketNumber}:
+
+The case is still pending with ${assignedDepartment}. A confirmed resolution has not yet been received.
+
+Next action:
+Follow up with the assigned team and update the ticket once a response is received.`;
+    } else if (
+      normalizedRequest.includes("resolved") ||
+      normalizedRequest.includes("fixed") ||
+      normalizedRequest.includes("close")
+    ) {
+      draft = `Resolution note for ${ticketNumber}:
+
+The reported issue, "${ticketSubject}", has been reviewed and marked as resolved.
+
+Action completed:
+The required review or correction has been completed by ${assignedDepartment}.
+
+Next action:
+Confirm the outcome with the customer before closing the ticket permanently.`;
+    } else if (
+      normalizedRequest.includes("detail") ||
+      normalizedRequest.includes("information") ||
+      normalizedRequest.includes("document") ||
+      normalizedRequest.includes("screenshot")
+    ) {
+      draft = `Additional information is required to continue the investigation for ${ticketNumber}.
+
+Required details:
+• Transaction or reference ID
+• Date and approximate time
+• Amount, where applicable
+• Screenshot or exact error message
+• Any supporting document
+
+Next action:
+Request the missing details from the customer and resume the investigation after receipt.`;
+    } else if (
+      normalizedRequest.includes("short") ||
+      normalizedRequest.includes("concise")
+    ) {
+      draft = `${ticketNumber}: ${ticketSubject} is under review with ${assignedDepartment}. Follow-up is pending, and the customer should be updated after confirmation.`;
+    } else if (
+      normalizedRequest.includes("next action") ||
+      normalizedRequest.includes("next step")
+    ) {
+      draft = existingText
+        ? `${existingText}
+
+Next action:
+Follow up with ${assignedDepartment}, confirm the current status and update the customer.`
+        : `Next action for ${ticketNumber}:
+
+Follow up with ${assignedDepartment}, confirm the current status and update the customer once verified.`;
+    } else if (
+      normalizedRequest.includes("improve") ||
+      normalizedRequest.includes("professional") ||
+      normalizedRequest.includes("rewrite")
+    ) {
+      if (existingText) {
+        draft = `Internal update for ${ticketNumber}:
+
+${existingText}
+
+Next action:
+Review any pending requirement with ${assignedDepartment} and record the confirmed outcome.`;
+      } else {
+        draft = `Internal update for ${ticketNumber}:
+
+The reported issue is currently under review. The available ticket information has been checked, and the matter is awaiting confirmation from ${assignedDepartment}.
+
+Next action:
+Follow up with the relevant team and update the customer after verification.`;
+      }
+    } else if (request) {
+      draft = `Internal note for ${ticketNumber}:
+
+${request}
+
+Ticket issue:
+${ticketSubject}
+
+Current status:
+${status}
+
+Next action:
+Follow up with ${assignedDepartment} and record the confirmed outcome.`;
+    }
+
+    setEditorText(draft);
   };
 
   const handleSubmit = async () => {
@@ -145,7 +406,7 @@ export default function NoteComposerModal({
         });
       }
 
-      onClose();
+      onClose?.();
     } catch (saveError) {
       console.error(
         "Unable to save note:",
@@ -162,8 +423,11 @@ export default function NoteComposerModal({
   };
 
   const handleBackdropMouseDown = (event) => {
-    if (event.target === event.currentTarget) {
-      onClose();
+    if (
+      event.target === event.currentTarget &&
+      !isSaving
+    ) {
+      onClose?.();
     }
   };
 
@@ -201,8 +465,17 @@ export default function NoteComposerModal({
                   (current) => !current,
                 )
               }
-              aria-label="Expand note composer"
-              title="Expand"
+              aria-label={
+                isExpanded
+                  ? "Restore note composer"
+                  : "Expand note composer"
+              }
+              title={
+                isExpanded
+                  ? "Restore"
+                  : "Expand"
+              }
+              disabled={isSaving}
             >
               <FaExpandAlt />
             </button>
@@ -212,6 +485,7 @@ export default function NoteComposerModal({
               className="crm-email-close"
               onClick={onClose}
               aria-label="Close note composer"
+              disabled={isSaving}
             >
               <FaTimes />
             </button>
@@ -237,7 +511,7 @@ export default function NoteComposerModal({
           <span>For</span>
 
           <strong>
-            {ticket?.subject || ticketNumber}
+            {ticketSubject || ticketNumber}
           </strong>
         </div>
 
@@ -254,12 +528,32 @@ export default function NoteComposerModal({
           <div className="crm-email-toolbar">
             <button
               type="button"
+              className="crm-email-help-write-button"
+              onMouseDown={(event) =>
+                event.preventDefault()
+              }
+              onClick={() =>
+                setShowHelpWriter(
+                  (current) => !current,
+                )
+              }
+              disabled={isSaving}
+              aria-expanded={showHelpWriter}
+              title="Create an internal note draft"
+            >
+              <span>✦</span>
+              Help me write
+            </button>
+
+            <button
+              type="button"
               onMouseDown={(event) =>
                 event.preventDefault()
               }
               onClick={() =>
                 applyCommand("bold")
               }
+              disabled={isSaving}
               aria-label="Bold"
               title="Bold"
             >
@@ -274,6 +568,7 @@ export default function NoteComposerModal({
               onClick={() =>
                 applyCommand("italic")
               }
+              disabled={isSaving}
               aria-label="Italic"
               title="Italic"
             >
@@ -288,6 +583,7 @@ export default function NoteComposerModal({
               onClick={() =>
                 applyCommand("underline")
               }
+              disabled={isSaving}
               aria-label="Underline"
               title="Underline"
             >
@@ -302,6 +598,7 @@ export default function NoteComposerModal({
               onClick={() =>
                 applyCommand("strikeThrough")
               }
+              disabled={isSaving}
               aria-label="Strikethrough"
               title="Strikethrough"
             >
@@ -318,6 +615,7 @@ export default function NoteComposerModal({
                   "insertUnorderedList",
                 )
               }
+              disabled={isSaving}
               aria-label="Bullet list"
               title="Bullet list"
             >
@@ -334,6 +632,7 @@ export default function NoteComposerModal({
                   "insertOrderedList",
                 )
               }
+              disabled={isSaving}
               aria-label="Numbered list"
               title="Numbered list"
             >
@@ -349,6 +648,141 @@ export default function NoteComposerModal({
               <FaPaperclip />
             </button>
           </div>
+
+          {showHelpWriter && (
+            <section className="crm-email-help-writer-panel">
+              <div className="crm-email-help-writer-heading">
+                <div>
+                  <strong>
+                    ✦ Help me write
+                  </strong>
+
+                  <span>
+                    Describe the internal note you want to prepare.
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowHelpWriter(false)
+                  }
+                  aria-label="Close writing assistant"
+                  disabled={isSaving}
+                >
+                  ×
+                </button>
+              </div>
+
+              <textarea
+                value={helpWriterInstruction}
+                onChange={(event) =>
+                  setHelpWriterInstruction(
+                    event.target.value,
+                  )
+                }
+                placeholder="Example: Summarize the ticket and add the next action for the operations team."
+                disabled={isSaving}
+                autoFocus
+              />
+
+              <div className="crm-email-help-writer-examples">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHelpWriterInstruction(
+                      "Summarize this ticket and add the next action.",
+                    )
+                  }
+                  disabled={isSaving}
+                >
+                  Summarize ticket
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHelpWriterInstruction(
+                      "Write a concise internal note about the payment issue.",
+                    )
+                  }
+                  disabled={isSaving}
+                >
+                  Payment note
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHelpWriterInstruction(
+                      "Write an escalation note for the relevant department.",
+                    )
+                  }
+                  disabled={isSaving}
+                >
+                  Escalation note
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHelpWriterInstruction(
+                      "Improve the existing note and make it professional.",
+                    )
+                  }
+                  disabled={isSaving}
+                >
+                  Improve note
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHelpWriterInstruction(
+                      "Make the internal note short and concise.",
+                    )
+                  }
+                  disabled={isSaving}
+                >
+                  Make concise
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setHelpWriterInstruction(
+                      "Add a clear next action to the existing note.",
+                    )
+                  }
+                  disabled={isSaving}
+                >
+                  Add next action
+                </button>
+              </div>
+
+              <div className="crm-email-help-writer-actions">
+                <button
+                  type="button"
+                  className="crm-help-writer-cancel"
+                  onClick={() =>
+                    setShowHelpWriter(false)
+                  }
+                  disabled={isSaving}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="crm-help-writer-create"
+                  onClick={handleCreateNoteDraft}
+                  disabled={isSaving}
+                >
+                  Create note
+                </button>
+              </div>
+            </section>
+          )}
         </div>
 
         <div className="crm-note-associated-row">
