@@ -1235,3 +1235,181 @@
   transform: translateY(0);
 }
 
+/* FINAL COMPACT CUSTOMER PROFILE */
+
+.cw-profile-heading {
+  padding: 14px 16px !important;
+  gap: 16px !important;
+  background: #f7fbfc;
+}
+
+.cw-profile-identity {
+  gap: 11px !important;
+}
+
+.cw-profile-identity h2 {
+  margin: 2px 0 3px !important;
+  font-size: 21px !important;
+  line-height: 1.2 !important;
+}
+
+.cw-profile-label {
+  font-size: 9px !important;
+}
+
+.cw-profile-contact {
+  gap: 4px 14px !important;
+  font-size: 11px !important;
+}
+
+/* Compact profile actions */
+
+.cw-profile-badges {
+  display: grid !important;
+  grid-template-columns: repeat(3, auto);
+  align-items: center !important;
+  justify-content: end !important;
+  gap: 7px !important;
+}
+
+.cw-create-customer-ticket-button,
+.cw-log-interaction-button,
+.cw-edit-customer-button {
+  min-height: 31px !important;
+  height: 31px !important;
+
+  padding: 5px 11px !important;
+
+  border-radius: 7px !important;
+
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+
+  white-space: nowrap !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.cw-create-customer-ticket-button:hover,
+.cw-log-interaction-button:hover,
+.cw-edit-customer-button:hover {
+  transform: none !important;
+}
+
+/* Compact customer status badges */
+
+.cw-account-badge,
+.cw-risk-badge {
+  min-height: 25px !important;
+  padding: 4px 9px !important;
+
+  font-size: 9px !important;
+
+  justify-self: end;
+}
+
+/* Cleaner customer information grid */
+
+.cw-profile-information {
+}
+
+/* Cleaner customer information grid */
+
+.cw-profile-information {
+  background: #ffffff;
+}
+
+.cw-profile-information > div {
+  min-height: 60px !important;
+  padding: 10px 14px !important;
+}
+
+.cw-profile-information span {
+  margin-bottom: 3px !important;
+
+  font-size: 9px !important;
+  letter-spacing: 0.05em !important;
+}
+
+.cw-profile-information strong {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
+/* Smaller main Add Customer button */
+
+.cw-add-customer-button {
+  min-height: 42px !important;
+  padding: 8px 14px !important;
+
+  border-radius: 9px !important;
+
+  font-size: 11px !important;
+  box-shadow: none !important;
+}
+
+/* Slightly reduce metric card height */
+
+.cw-stat-grid {
+  gap: 10px !important;
+  margin: 11px 0 !important;
+}
+
+.cw-stat-card {
+  padding: 11px 13px !important;
+}
+
+.cw-stat-card strong {
+  margin: 3px 0 2px !important;
+  font-size: 22px !important;
+}
+
+/* Desktop profile alignment */
+
+@media (min-width: 901px) {
+  .cw-profile-heading {
+    display: grid !important;
+    grid-template-columns: minmax(260px, 1fr) auto;
+    align-items: center !important;
+  }
+}
+
+/* Tablet */
+
+@media (max-width: 900px) {
+  .cw-profile-heading {
+    align-items: flex-start !important;
+  }
+
+  .cw-profile-badges {
+    grid-template-columns: repeat(3, auto);
+    justify-content: start !important;
+  }
+
+  .cw-account-badge,
+  .cw-risk-badge {
+    justify-self: start;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 640px) {
+  .cw-profile-badges {
+    display: flex !important;
+    justify-content: flex-start !important;
+  }
+
+  .cw-create-customer-ticket-button,
+  .cw-log-interaction-button,
+  .cw-edit-customer-button {
+    flex: 1;
+    min-width: 110px;
+  }
+
+  .cw-profile-information > div {
+    min-height: auto !important;
+  }
+}
+

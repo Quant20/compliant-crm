@@ -12,10 +12,14 @@ import {
 
 import { useTickets } from "../../context/TicketContext";
 
+import {
+  getSlaStatus,
+} from "../../services/slaService";
+
 import TicketTable from "../../components/tickets/TicketTable";
 import CreateTicketModal from "../../components/tickets/CreateTicketModal";
 
-const ITEMS_PER_PAGE = 10;
+const PAGE_SIZE_OPTIONS = [50, 100, 200, 500];
 
 const PRIORITY_ORDER = {
   Critical: 4,
@@ -167,6 +171,9 @@ export default function Tickets() {
   const [priorityFilter, setPriorityFilter] =
     useState("All");
 
+  const [slaFilter, setSlaFilter] =
+    useState("All");
+
   const [
     departmentFilter,
     setDepartmentFilter,
@@ -180,6 +187,11 @@ export default function Tickets() {
 
   const [currentPage, setCurrentPage] =
     useState(1);
+
+  const [
+    ticketsPerPage,
+    setTicketsPerPage,
+  ] = useState(50);
 
   const [
     showCreateTicket,
@@ -339,22 +351,12 @@ export default function Tickets() {
       },
     ).length;
 
-    const critical = tickets.filter(
-      (ticket) => {
-        return (
-          normalizeText(ticket.priority) ===
-          "critical"
-        );
-      },
-    ).length;
-
     return {
       total,
       open,
       inProgress,
       pending,
       resolved,
-      critical,
     };
   }, [tickets]);
 
@@ -413,12 +415,18 @@ export default function Tickets() {
             getAssignedAgent(ticket),
           ) === normalizeText(ownerFilter);
 
+        const matchesSla =
+          slaFilter === "All" ||
+          getSlaStatus(ticket).state ===
+            slaFilter;
+
         return (
           matchesSearch &&
           matchesStatus &&
           matchesPriority &&
           matchesDepartment &&
-          matchesOwner
+          matchesOwner &&
+          matchesSla
         );
       },
     );
@@ -477,15 +485,17 @@ export default function Tickets() {
     searchTerm,
     statusFilter,
     priorityFilter,
+    slaFilter,
     departmentFilter,
     ownerFilter,
     sortBy,
+    ticketsPerPage,
   ]);
 
   const totalPages = Math.max(
     1,
     Math.ceil(
-      filteredTickets.length / ITEMS_PER_PAGE,
+      filteredTickets.length / ticketsPerPage,
     ),
   );
 
@@ -496,6 +506,7 @@ export default function Tickets() {
     searchTerm,
     statusFilter,
     priorityFilter,
+    slaFilter,
     departmentFilter,
     ownerFilter,
     sortBy,
@@ -508,14 +519,18 @@ export default function Tickets() {
   }, [currentPage, totalPages]);
 
   const startIndex =
-    (currentPage - 1) * ITEMS_PER_PAGE;
+    (currentPage - 1) * ticketsPerPage;
 
   const paginatedTickets = useMemo(() => {
     return filteredTickets.slice(
       startIndex,
-      startIndex + ITEMS_PER_PAGE,
+      startIndex + ticketsPerPage,
     );
-  }, [filteredTickets, startIndex]);
+  }, [
+    filteredTickets,
+    startIndex,
+    ticketsPerPage,
+  ]);
 
   const visibleStart =
     filteredTickets.length === 0
@@ -523,7 +538,7 @@ export default function Tickets() {
       : startIndex + 1;
 
   const visibleEnd = Math.min(
-    startIndex + ITEMS_PER_PAGE,
+    startIndex + ticketsPerPage,
     filteredTickets.length,
   );
 
@@ -592,6 +607,7 @@ export default function Tickets() {
     setSearchTerm("");
     setStatusFilter("All");
     setPriorityFilter("All");
+    setSlaFilter("All");
     setDepartmentFilter("All");
     setOwnerFilter("All");
     setSortBy("newest");
@@ -608,6 +624,7 @@ export default function Tickets() {
     searchTerm.trim() !== "" ||
     statusFilter !== "All" ||
     priorityFilter !== "All" ||
+    slaFilter !== "All" ||
     departmentFilter !== "All" ||
     ownerFilter !== "All" ||
     sortBy !== "newest";
@@ -722,13 +739,6 @@ export default function Tickets() {
           <small>Resolved or closed</small>
         </article>
 
-        <article className="crm-ticket-stat-card">
-          <span>Critical</span>
-          <strong>
-            {ticketStatistics.critical}
-          </strong>
-          <small>Needs urgent attention</small>
-        </article>
       </section>
 
       <section className="crm-ticket-workspace">
@@ -835,6 +845,42 @@ export default function Tickets() {
                     </option>
                   ),
                 )}
+              </select>
+            </div>
+
+            <div className="crm-ticket-filter">
+              <label htmlFor="sla-filter">
+                SLA Status
+              </label>
+
+              <select
+                id="sla-filter"
+                value={slaFilter}
+                onChange={(event) =>
+                  setSlaFilter(
+                    event.target.value,
+                  )
+                }
+              >
+                <option value="All">
+                  All
+                </option>
+
+                <option value="within-sla">
+                  Within SLA
+                </option>
+
+                <option value="near-due">
+                  Near deadline
+                </option>
+
+                <option value="breached">
+                  Overdue
+                </option>
+
+                <option value="unknown">
+                  Not set
+                </option>
               </select>
             </div>
 
@@ -975,9 +1021,40 @@ export default function Tickets() {
               </p>
             </div>
 
-            <span className="crm-ticket-result-count">
-              {filteredTickets.length}
-            </span>
+            <div className="crm-ticket-list-controls">
+              <label
+                className="crm-page-size-control"
+                htmlFor="tickets-per-page"
+              >
+                <span>Rows</span>
+
+                <select
+                  id="tickets-per-page"
+                  value={ticketsPerPage}
+                  onChange={(event) => {
+                    setTicketsPerPage(
+                      Number(event.target.value),
+                    );
+                    setCurrentPage(1);
+                  }}
+                >
+                  {PAGE_SIZE_OPTIONS.map(
+                    (pageSize) => (
+                      <option
+                        key={pageSize}
+                        value={pageSize}
+                      >
+                        {pageSize}
+                      </option>
+                    ),
+                  )}
+                </select>
+              </label>
+
+              <span className="crm-ticket-result-count">
+                {filteredTickets.length}
+              </span>
+            </div>
           </div>
 
           {loading && tickets.length === 0 ? (

@@ -1782,3 +1782,154 @@ button.crm-list-action-button {
   color: #475467;
 }
 
+
+/* =========================================================
+   FINAL TICKET WORKSPACE ALIGNMENT
+========================================================= */
+
+@media (min-width: 901px) {
+  .crm-ticket-toolbar {
+    grid-template-columns:
+      minmax(220px, 1.5fr)
+      minmax(0, 5fr) !important;
+
+    align-items: end !important;
+  }
+
+  .crm-ticket-filter-grid {
+    grid-template-columns:
+      repeat(6, minmax(105px, 1fr)) !important;
+
+    align-items: end !important;
+  }
+}
+
+/* =========================================================
+   TABLE HORIZONTAL SCROLLING
+========================================================= */
+
+.crm-ticket-list-card {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.crm-ticket-table-container {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+
+  overflow-x: auto !important;
+  overflow-y: visible;
+
+  padding-bottom: 3px;
+
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+.crm-ticket-table {
+  width: 100%;
+  min-width: 1180px !important;
+  table-layout: auto;
+}
+
+/* Keep important values compact */
+
+.crm-ticket-table th,
+.crm-ticket-table td {
+  white-space: nowrap;
+}
+
+.crm-col-subject {
+  min-width: 150px;
+}
+
+.crm-col-customer {
+  min-width: 165px;
+}
+
+.crm-col-category {
+  min-width: 95px;
+}
+
+.crm-col-sla {
+  min-width: 105px !important;
+  width: 105px !important;
+}
+
+.crm-col-created {
+  min-width: 100px;
+}
+
+.crm-col-actions {
+  min-width: 125px !important;
+  width: 125px !important;
+}
+
+/* =========================================================
+   ROWS-PER-PAGE CONTROL
+========================================================= */
+
+.crm-ticket-list-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.crm-page-size-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #475569;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.crm-page-size-control select {
+  min-width: 72px;
+  min-height: 32px;
+
+  padding: 5px 9px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+
+  background: #ffffff;
+  color: #1e293b;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.crm-page-size-control select:focus {
+  border-color: #087f73;
+  outline: 2px solid rgba(8, 127, 115, 0.14);
+}
+
+@media (max-width: 900px) {
+  .crm-ticket-list-header {
+    gap: 12px;
+  }
+
+  .crm-ticket-list-controls {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 600px) {
+  .crm-ticket-list-header {
+    flex-direction: column;
+  }
+
+  .crm-ticket-list-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
