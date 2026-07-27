@@ -114,6 +114,10 @@ const TICKET_VIEW_OPTIONS = [
     label: "Closed",
   },
   {
+    key: "sla-escalated",
+    label: "SLA Escalated",
+  },
+  {
     key: "irrelevant",
     label: "Irrelevant",
   },
@@ -237,6 +241,7 @@ export default function Tickets() {
     const counts = {
       active: 0,
       closed: 0,
+      "sla-escalated": 0,
       irrelevant: 0,
       all: tickets.length,
     };
@@ -245,6 +250,14 @@ export default function Tickets() {
       const view = getTicketView(ticket);
 
       counts[view] += 1;
+
+      if (
+        view === "active" &&
+        getSlaStatus(ticket).state ===
+          "breached"
+      ) {
+        counts["sla-escalated"] += 1;
+      }
     });
 
     return counts;
@@ -253,6 +266,16 @@ export default function Tickets() {
   const ticketsForSelectedView = useMemo(() => {
     if (ticketView === "all") {
       return tickets;
+    }
+
+    if (ticketView === "sla-escalated") {
+      return tickets.filter((ticket) => {
+        return (
+          getTicketView(ticket) === "active" &&
+          getSlaStatus(ticket).state ===
+            "breached"
+        );
+      });
     }
 
     return tickets.filter((ticket) => {
