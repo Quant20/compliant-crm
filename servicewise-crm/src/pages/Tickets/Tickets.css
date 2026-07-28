@@ -1933,3 +1933,101 @@ button.crm-list-action-button {
     justify-content: space-between;
   }
 }
+
+/* =========================================================
+   FINAL COMPACT TICKET ALIGNMENT
+========================================================= */
+
+/* Stretch all five summary cards evenly */
+.crm-ticket-statistics {
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.crm-ticket-stat-card {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Reduce unnecessary space between ticket views */
+.crm-ticket-view-tabs {
+  gap: 5px !important;
+  padding: 7px 12px !important;
+}
+
+.crm-ticket-view-tabs
+  button.crm-ticket-view-tab {
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 35px !important;
+
+  gap: 6px !important;
+  padding: 6px 10px !important;
+}
+
+.crm-ticket-view-tabs
+  button.crm-ticket-view-tab
+  > strong {
+  min-width: 21px !important;
+  height: 20px !important;
+  padding: 0 5px !important;
+}
+
+/* Keep search and filters closer together */
+.crm-ticket-toolbar {
+  grid-template-columns:
+    minmax(220px, 1.25fr)
+    minmax(0, 5fr) !important;
+
+  gap: 10px !important;
+  padding: 10px 14px !important;
+}
+
+.crm-ticket-filter-grid {
+  gap: 8px !important;
+}
+
+.crm-ticket-search input,
+.crm-ticket-filter select {
+  min-height: 35px !important;
+}
+
+/* Responsive alignment */
+@media (max-width: 1000px) {
+  .crm-ticket-statistics {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .crm-ticket-statistics {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .crm-ticket-view-tabs {
+    gap: 5px !important;
+  }
+}
+
+/* =========================================================
+   CUSTOM TICKET FILTER DROPDOWNS
+========================================================= */
+
+.crm-ticket-toolbar,
+.crm-ticket-filter-grid,
+.crm-ticket-filter {
+  overflow: visible !important;
+}
+
+.crm-ticket-filter .sw-custom-select {
+  width: 100%;
+}
+
+.crm-ticket-filter
+  .sw-custom-select__trigger {
+  min-height: 35px;
+}
+

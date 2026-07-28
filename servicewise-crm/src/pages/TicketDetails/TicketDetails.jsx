@@ -82,7 +82,7 @@ export default function TicketDetails() {
     collapsedSections,
     setCollapsedSections,
   ] = useState({
-    complaint: false,
+    complaint: true,
     messages: false,
     notes: false,
     activity: false,
@@ -548,7 +548,7 @@ export default function TicketDetails() {
     safelyAddActivity(ticket.id, {
       id: Date.now(),
       type: "meeting",
-      action: `Meeting prepared: ${meeting.title}`,
+      action: `Meeting scheduled: ${meeting.title}`,
       user: getCurrentAgentName(),
       time,
       meetingDate: meeting.date,
@@ -562,7 +562,7 @@ export default function TicketDetails() {
     }));
 
     showSuccess(
-      "Google Calendar opened with the meeting details.",
+      `Meeting scheduled for ${meeting.date} at ${meeting.startTime}.`,
     );
   };
 

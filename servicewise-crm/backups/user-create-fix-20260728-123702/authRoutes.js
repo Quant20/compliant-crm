@@ -1,0 +1,2 @@
+import { Router } from "express"; import { loginHandler, changePasswordHandler, listUsersHandler, updateUserHandler } from "../controllers/authController.js"; import { requireApiKey } from "../middleware/authMiddleware.js";
+const router = Router(); router.post("/login", loginHandler); router.post("/change-password", changePasswordHandler); router.get("/users", requireApiKey, listUsersHandler); router.put("/users/:email", requireApiKey, updateUserHandler); export default router;

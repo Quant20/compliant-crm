@@ -16,8 +16,11 @@ import {
   getSlaStatus,
 } from "../../services/slaService";
 
+import { getAgents } from "../../services/agentService";
+
 import TicketTable from "../../components/tickets/TicketTable";
 import CreateTicketModal from "../../components/tickets/CreateTicketModal";
+import CustomSelect from "../../components/ui/CustomSelect";
 
 const PAGE_SIZE_OPTIONS = [50, 100, 200, 500];
 
@@ -61,12 +64,17 @@ const getCustomerEmail = (ticket) => {
 };
 
 const getAssignedAgent = (ticket) => {
-  return (
+  const assignedAgent =
     ticket.assignedAgent ||
     ticket.assignedAgentName ||
     ticket.assigned_agent_name ||
-    "Unassigned"
-  );
+    ticket.assigned_agent ||
+    "Unassigned";
+
+  return normalizeText(assignedAgent) ===
+    "usman ali"
+    ? "Unassigned"
+    : assignedAgent;
 };
 
 const getDepartment = (ticket) => {
@@ -284,57 +292,211 @@ export default function Tickets() {
   }, [tickets, ticketView]);
 
   const statusOptions = useMemo(() => {
-    const values = ticketsForSelectedView
+    const standardStatuses = [
+      "Open",
+      "In Progress",
+      "Pending",
+      "Resolved",
+      "Closed",
+      "Irrelevant",
+    ];
+
+    const ticketStatuses = tickets
       .map((ticket) => ticket.status)
       .filter(Boolean);
 
-    return [
-      "All",
-      ...Array.from(new Set(values)).sort(),
-    ];
-  }, [ticketsForSelectedView]);
+    const seenStatuses = new Set();
+
+    const values = [
+      ...standardStatuses,
+      ...ticketStatuses,
+    ].filter((status) => {
+      const key = normalizeText(status);
+
+      if (!key || seenStatuses.has(key)) {
+        return false;
+      }
+
+      seenStatuses.add(key);
+      return true;
+    });
+
+    return ["All", ...values];
+  }, [tickets]);
 
   const priorityOptions = useMemo(() => {
-    const values = ticketsForSelectedView
+    const standardPriorities = [
+      "Critical",
+      "High",
+      "Medium",
+      "Low",
+    ];
+
+    const ticketPriorities = tickets
       .map((ticket) => ticket.priority)
       .filter(Boolean);
 
-    return [
-      "All",
-      ...Array.from(new Set(values)).sort(
-        (firstPriority, secondPriority) => {
-          return (
-            (PRIORITY_ORDER[secondPriority] ||
-              0) -
-            (PRIORITY_ORDER[firstPriority] ||
-              0)
-          );
-        },
-      ),
-    ];
-  }, [ticketsForSelectedView]);
+    const seenPriorities = new Set();
+
+    const values = [
+      ...standardPriorities,
+      ...ticketPriorities,
+    ].filter((priority) => {
+      const key = normalizeText(priority);
+
+      if (!key || seenPriorities.has(key)) {
+        return false;
+      }
+
+      seenPriorities.add(key);
+      return true;
+    });
+
+    values.sort(
+      (firstPriority, secondPriority) => {
+        const priorityDifference =
+          (PRIORITY_ORDER[secondPriority] || 0) -
+          (PRIORITY_ORDER[firstPriority] || 0);
+
+        if (priorityDifference !== 0) {
+          return priorityDifference;
+        }
+
+        return firstPriority.localeCompare(
+          secondPriority,
+        );
+      },
+    );
+
+    return ["All", ...values];
+  }, [tickets]);
 
   const departmentOptions = useMemo(() => {
-    const values = ticketsForSelectedView
+    const values = tickets
       .map(getDepartment)
       .filter(Boolean);
 
-    return [
-      "All",
-      ...Array.from(new Set(values)).sort(),
-    ];
-  }, [ticketsForSelectedView]);
+    const uniqueDepartments =
+      Array.from(new Set(values)).sort(
+        (firstDepartment, secondDepartment) =>
+          firstDepartment.localeCompare(
+            secondDepartment,
+          ),
+      );
+
+    return ["All", ...uniqueDepartments];
+  }, [tickets]);
 
   const ownerOptions = useMemo(() => {
-    const values = ticketsForSelectedView
+    const optionMap = new Map();
+
+    optionMap.set("unassigned", {
+      value: "Unassigned",
+      label: "Unassigned",
+    });
+
+    let savedAgents = [];
+
+    try {
+      savedAgents = getAgents();
+    } catch (error) {
+      console.error(
+        "Unable to load saved agents:",
+        error,
+      );
+    }
+
+    savedAgents.forEach((agent) => {
+      const agentName = String(
+        agent.name ||
+          [
+            agent.firstName,
+            agent.lastName,
+          ]
+            .filter(Boolean)
+            .join(" "),
+      ).trim();
+
+      if (!agentName) {
+        return;
+      }
+
+      const employeeId =
+        agent.employeeId ||
+        agent.employee_id ||
+        "";
+
+      const accountStatus =
+        agent.accountStatus ||
+        agent.account_status ||
+        "Active";
+
+      const details = [
+        employeeId,
+        accountStatus !== "Active"
+          ? accountStatus
+          : "",
+      ].filter(Boolean);
+
+      optionMap.set(
+        normalizeText(agentName),
+        {
+          value: agentName,
+          label: details.length
+            ? `${agentName} — ${details.join(" · ")}`
+            : agentName,
+        },
+      );
+    });
+
+    tickets
       .map(getAssignedAgent)
-      .filter(Boolean);
+      .filter(
+        (agentName) =>
+          Boolean(agentName) &&
+          normalizeText(agentName) !==
+            "usman ali",
+      )
+      .forEach((agentName) => {
+        const key = normalizeText(agentName);
+
+        if (!optionMap.has(key)) {
+          optionMap.set(key, {
+            value: agentName,
+            label: agentName,
+          });
+        }
+      });
+
+    const options =
+      Array.from(optionMap.values()).sort(
+        (firstAgent, secondAgent) => {
+          if (
+            firstAgent.value === "Unassigned"
+          ) {
+            return -1;
+          }
+
+          if (
+            secondAgent.value === "Unassigned"
+          ) {
+            return 1;
+          }
+
+          return firstAgent.label.localeCompare(
+            secondAgent.label,
+          );
+        },
+      );
 
     return [
-      "All",
-      ...Array.from(new Set(values)).sort(),
+      {
+        value: "All",
+        label: "All agents",
+      },
+      ...options,
     ];
-  }, [ticketsForSelectedView]);
+  }, [tickets]);
 
   const ticketStatistics = useMemo(() => {
     const total = tickets.length;
@@ -824,24 +986,12 @@ export default function Tickets() {
                 Status
               </label>
 
-              <select
-                id="status-filter"
-                value={statusFilter}
-                onChange={(event) =>
-                  setStatusFilter(
-                    event.target.value,
-                  )
-                }
-              >
-                {statusOptions.map((status) => (
-                  <option
-                    key={status}
-                    value={status}
-                  >
-                    {status}
-                  </option>
-                ))}
-              </select>
+              <CustomSelect
+                  id="status-filter"
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  options={statusOptions}
+                />
             </div>
 
             <div className="crm-ticket-filter">
@@ -849,26 +999,12 @@ export default function Tickets() {
                 Priority
               </label>
 
-              <select
-                id="priority-filter"
-                value={priorityFilter}
-                onChange={(event) =>
-                  setPriorityFilter(
-                    event.target.value,
-                  )
-                }
-              >
-                {priorityOptions.map(
-                  (priority) => (
-                    <option
-                      key={priority}
-                      value={priority}
-                    >
-                      {priority}
-                    </option>
-                  ),
-                )}
-              </select>
+              <CustomSelect
+                  id="priority-filter"
+                  value={priorityFilter}
+                  onChange={setPriorityFilter}
+                  options={priorityOptions}
+                />
             </div>
 
             <div className="crm-ticket-filter">
@@ -876,35 +1012,33 @@ export default function Tickets() {
                 SLA Status
               </label>
 
-              <select
-                id="sla-filter"
-                value={slaFilter}
-                onChange={(event) =>
-                  setSlaFilter(
-                    event.target.value,
-                  )
-                }
-              >
-                <option value="All">
-                  All
-                </option>
-
-                <option value="within-sla">
-                  Within SLA
-                </option>
-
-                <option value="near-due">
-                  Near deadline
-                </option>
-
-                <option value="breached">
-                  Overdue
-                </option>
-
-                <option value="unknown">
-                  Not set
-                </option>
-              </select>
+              <CustomSelect
+                  id="sla-filter"
+                  value={slaFilter}
+                  onChange={setSlaFilter}
+                  options={[
+                    {
+                      value: "All",
+                      label: "All",
+                    },
+                    {
+                      value: "within-sla",
+                      label: "Within SLA",
+                    },
+                    {
+                      value: "near-due",
+                      label: "Near deadline",
+                    },
+                    {
+                      value: "breached",
+                      label: "Overdue",
+                    },
+                    {
+                      value: "unknown",
+                      label: "Not set",
+                    },
+                  ]}
+                />
             </div>
 
             <div className="crm-ticket-filter">
@@ -912,51 +1046,25 @@ export default function Tickets() {
                 Department
               </label>
 
-              <select
-                id="department-filter"
-                value={departmentFilter}
-                onChange={(event) =>
-                  setDepartmentFilter(
-                    event.target.value,
-                  )
-                }
-              >
-                {departmentOptions.map(
-                  (department) => (
-                    <option
-                      key={department}
-                      value={department}
-                    >
-                      {department}
-                    </option>
-                  ),
-                )}
-              </select>
+              <CustomSelect
+                  id="department-filter"
+                  value={departmentFilter}
+                  onChange={setDepartmentFilter}
+                  options={departmentOptions}
+                />
             </div>
 
             <div className="crm-ticket-filter">
               <label htmlFor="owner-filter">
-                Owner
+                Assigned Agent
               </label>
 
-              <select
-                id="owner-filter"
-                value={ownerFilter}
-                onChange={(event) =>
-                  setOwnerFilter(
-                    event.target.value,
-                  )
-                }
-              >
-                {ownerOptions.map((owner) => (
-                  <option
-                    key={owner}
-                    value={owner}
-                  >
-                    {owner}
-                  </option>
-                ))}
-              </select>
+              <CustomSelect
+                  id="owner-filter"
+                  value={ownerFilter}
+                  onChange={setOwnerFilter}
+                  options={ownerOptions}
+                />
             </div>
 
             <div className="crm-ticket-filter">
@@ -964,33 +1072,33 @@ export default function Tickets() {
                 Sort by
               </label>
 
-              <select
-                id="sort-filter"
-                value={sortBy}
-                onChange={(event) =>
-                  setSortBy(event.target.value)
-                }
-              >
-                <option value="newest">
-                  Newest first
-                </option>
-
-                <option value="oldest">
-                  Oldest first
-                </option>
-
-                <option value="priority-high">
-                  Highest priority
-                </option>
-
-                <option value="priority-low">
-                  Lowest priority
-                </option>
-
-                <option value="ticket-number">
-                  Ticket number
-                </option>
-              </select>
+              <CustomSelect
+                  id="sort-filter"
+                  value={sortBy}
+                  onChange={setSortBy}
+                  options={[
+                    {
+                      value: "newest",
+                      label: "Newest first",
+                    },
+                    {
+                      value: "oldest",
+                      label: "Oldest first",
+                    },
+                    {
+                      value: "priority-high",
+                      label: "Highest priority",
+                    },
+                    {
+                      value: "priority-low",
+                      label: "Lowest priority",
+                    },
+                    {
+                      value: "ticket-number",
+                      label: "Ticket number",
+                    },
+                  ]}
+                />
             </div>
           </div>
 

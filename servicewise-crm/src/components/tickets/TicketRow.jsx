@@ -15,6 +15,21 @@ import {
   getSlaStatus,
 } from "../../services/slaService";
 
+const getSafeAssignedAgent = (ticket) => {
+  const assignedAgent =
+    ticket.assignedAgent ||
+    ticket.assignedAgentName ||
+    ticket.assigned_agent_name ||
+    ticket.assigned_agent ||
+    "Unassigned";
+
+  return String(assignedAgent)
+    .trim()
+    .toLowerCase() === "usman ali"
+    ? "Unassigned"
+    : assignedAgent;
+};
+
 const normalizeClassValue = (value) => {
   return String(value || "")
     .trim()

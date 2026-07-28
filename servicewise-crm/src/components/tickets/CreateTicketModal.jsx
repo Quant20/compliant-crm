@@ -579,12 +579,12 @@ export default function CreateTicketModal({
         assignedAgent:
           selectedAgent
             ? selectedAgent.name
-            : "Unassigned",
+            : "",
 
         assignedAgentName:
           selectedAgent
             ? selectedAgent.name
-            : "Unassigned",
+            : "",
 
         assignedAgentId:
           selectedAgent
@@ -1179,7 +1179,7 @@ export default function CreateTicketModal({
                   }
                 >
                   <option value="">
-                    Unassigned
+                    Auto assign
                   </option>
 
                   {supportAgents.map(

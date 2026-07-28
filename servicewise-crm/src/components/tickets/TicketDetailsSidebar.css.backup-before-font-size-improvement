@@ -1,0 +1,400 @@
+/* =========================================================
+   INDEPENDENT TICKET SIDEBAR
+========================================================= */
+
+.ticket-details-sidebar {
+  position: sticky;
+  top: 14px;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: calc(100vh - 28px);
+  min-height: 0;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1px solid #d9e2ec;
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+}
+
+.ticket-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+  padding: 16px 17px;
+  background: #ffffff;
+  border-bottom: 1px solid #dfe7ef;
+}
+
+.ticket-sidebar-header span {
+  display: block;
+  margin-bottom: 2px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ticket-sidebar-header h2 {
+  margin: 0;
+  color: #10233f;
+  font-size: 18px;
+}
+
+.ticket-sidebar-channel {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  margin: 0 !important;
+  padding: 6px 9px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  white-space: nowrap;
+}
+
+.ticket-sidebar-channel.channel-whatsapp {
+  color: #067647;
+  background: #ecfdf3;
+  border-color: #abefc6;
+}
+
+.ticket-sidebar-channel.channel-email {
+  color: #175cd3;
+  background: #eff8ff;
+  border-color: #b2ddff;
+}
+
+.ticket-sidebar-channel.channel-phone {
+  color: #6941c6;
+  background: #f4f3ff;
+  border-color: #d9d6fe;
+}
+
+.ticket-sidebar-channel.channel-web,
+.ticket-sidebar-channel.channel-app,
+.ticket-sidebar-channel.channel-manual {
+  color: #475467;
+  background: #f2f4f7;
+  border-color: #d0d5dd;
+}
+
+.ticket-sidebar-scroll-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 10px;
+}
+
+.ticket-sidebar-scroll-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ticket-sidebar-scroll-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ticket-sidebar-scroll-content::-webkit-scrollbar-thumb {
+  background: #c5d1dc;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+.ticket-sidebar-scroll-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* =========================================================
+   COLLAPSIBLE SECTIONS
+========================================================= */
+
+.ticket-sidebar-section {
+  margin-bottom: 9px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #dfe7ef;
+  border-radius: 10px;
+}
+
+.ticket-sidebar-section:last-child {
+  margin-bottom: 0;
+}
+
+.ticket-sidebar-section > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 11px 12px;
+  color: #25364d;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.ticket-sidebar-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.ticket-sidebar-section > summary:hover {
+  background: #f8fafc;
+}
+
+.ticket-sidebar-section[open] > summary {
+  border-bottom: 1px solid #e5ebf1;
+}
+
+.ticket-sidebar-section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: #25364d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ticket-sidebar-section-title svg {
+  flex: 0 0 auto;
+  color: #0f766e;
+  font-size: 12px;
+}
+
+.ticket-sidebar-chevron {
+  flex: 0 0 auto;
+  color: #94a3b8;
+  font-size: 10px;
+  transition: transform 0.2s ease;
+}
+
+.ticket-sidebar-section[open]
+  .ticket-sidebar-chevron {
+  transform: rotate(180deg);
+}
+
+.ticket-sidebar-section-body {
+  padding: 11px 12px 12px;
+}
+
+.ticket-sidebar-section.danger {
+  border-color: #fecdca;
+}
+
+.ticket-sidebar-section.warning {
+  border-color: #fedf89;
+}
+
+.ticket-sidebar-section.success {
+  border-color: #bde4dc;
+}
+
+/* =========================================================
+   FIELDS AND PROPERTY ROWS
+========================================================= */
+
+.ticket-sidebar-field {
+  margin-bottom: 11px;
+}
+
+.ticket-sidebar-field label {
+  display: block;
+  margin-bottom: 5px;
+  color: #475569;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.ticket-sidebar-field select {
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 30px 8px 10px;
+  color: #1e293b;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  outline: none;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.ticket-sidebar-field select:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.11);
+}
+
+.ticket-sidebar-row {
+  display: grid;
+  grid-template-columns: minmax(0, 42%) minmax(0, 58%);
+  gap: 10px;
+  align-items: start;
+  padding: 8px 0;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.ticket-sidebar-row:last-child {
+  border-bottom: 0;
+}
+
+.ticket-sidebar-row > span {
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.ticket-sidebar-row > strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #24364d;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.45;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ticket-sidebar-row > strong.allow-wrap {
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.ticket-sidebar-row > strong.value-danger {
+  color: #b42318;
+}
+
+.ticket-sidebar-row > strong.value-warning {
+  color: #b54708;
+}
+
+.ticket-sidebar-row > strong.value-success {
+  color: #067647;
+}
+
+/* =========================================================
+   SLA STATUS
+========================================================= */
+
+.ticket-sidebar-sla-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+  padding: 9px 10px;
+  border: 1px solid;
+  border-radius: 8px;
+}
+
+.ticket-sidebar-sla-status span,
+.ticket-sidebar-sla-status strong {
+  font-size: 10px;
+}
+
+.ticket-sidebar-sla-status.success {
+  color: #067647;
+  background: #ecfdf3;
+  border-color: #abefc6;
+}
+
+.ticket-sidebar-sla-status.warning {
+  color: #b54708;
+  background: #fffaeb;
+  border-color: #fedf89;
+}
+
+.ticket-sidebar-sla-status.danger {
+  color: #b42318;
+  background: #fef3f2;
+  border-color: #fecdca;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1050px) {
+  .ticket-details-sidebar {
+    position: static;
+    max-height: none;
+  }
+
+  .ticket-sidebar-scroll-content {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 640px) {
+  .ticket-sidebar-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ticket-sidebar-row {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .ticket-sidebar-row > strong {
+    text-align: left;
+    white-space: normal;
+  }
+}
+
+/* CUSTOMER 360 PROFILE LINK */
+
+.ticket-sidebar-customer-profile-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  width: 100%;
+  min-height: 39px;
+
+  margin-bottom: 14px;
+  padding: 9px 12px;
+
+  border: 1px solid #0f766e;
+  border-radius: 8px;
+
+  background: #ecf8f5;
+  color: #0f766e;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.ticket-sidebar-customer-profile-button:hover:not(:disabled) {
+  border-color: #0b625c;
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.ticket-sidebar-customer-profile-button:disabled {
+  border-color: #d5dde5;
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}

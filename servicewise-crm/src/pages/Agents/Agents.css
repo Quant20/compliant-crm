@@ -565,3 +565,151 @@
     width: 100%;
   }
 }
+
+/* =========================================================
+   MANUAL AGENT STATUS CONTROL
+========================================================= */
+
+.agent-status-select {
+  min-width: 112px;
+  min-height: 30px;
+
+  padding: 5px 28px 5px 10px;
+
+  border: 1px solid #d0d5dd;
+  border-radius: 999px;
+  outline: none;
+
+  background-color: #f2f4f7;
+  color: #475467;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.agent-status-select:focus {
+  box-shadow:
+    0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+
+.agent-status-select--available {
+  border-color: #a6f4c5;
+
+  background-color: #ecfdf3;
+  color: #067647;
+}
+
+.agent-status-select--busy {
+  border-color: #fed7aa;
+
+  background-color: #fff7ed;
+  color: #c2410c;
+}
+
+.agent-status-select--offline {
+  border-color: #d0d5dd;
+
+  background-color: #f2f4f7;
+  color: #667085;
+}
+
+/* =========================================================
+   AGENT MANAGEMENT ACTIONS
+========================================================= */
+
+.agents-add-button {
+  min-height: 38px;
+  flex: 0 0 auto;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  padding: 8px 15px;
+
+  border: 1px solid #0f766e;
+  border-radius: 8px;
+
+  background: #0f766e;
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.agents-add-button:hover {
+  border-color: #0b625c;
+  background: #0b625c;
+  transform: translateY(-1px);
+}
+
+.agents-add-button:active {
+  transform: translateY(0);
+}
+
+.agents-add-button svg {
+  font-size: 11px;
+}
+
+.agent-edit-button {
+  min-height: 30px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  padding: 5px 10px;
+
+  border: 1px solid #bfd0dc;
+  border-radius: 7px;
+
+  background: #ffffff;
+  color: #0b5a8f;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.agent-edit-button:hover {
+  border-color: #0b5a8f;
+  background: #eef7fb;
+  color: #064e89;
+}
+
+.agent-edit-button svg {
+  font-size: 10px;
+}
+
+.agents-table th:last-child,
+.agents-table td:last-child {
+  width: 90px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .agents-add-button {
+    width: 100%;
+  }
+}
+

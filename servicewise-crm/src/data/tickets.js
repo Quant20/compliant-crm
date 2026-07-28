@@ -33,7 +33,7 @@ const tickets = [
     category: "Payments",
     priority: "Critical",
     status: "In Progress",
-    assignedAgent: "Usman Ali",
+    assignedAgent: "Unassigned",
     sla: "4 Hours",
     createdAt: "2026-07-16 11:00",
     updatedAt: "2026-07-16 11:45",

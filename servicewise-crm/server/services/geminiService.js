@@ -1,0 +1,194 @@
+function getApiKey() {
+  const key = process.env.GEMINI_API_KEY;
+
+  if (!key) {
+    const error = new Error(
+      "GEMINI_API_KEY is not configured.",
+    );
+
+    error.statusCode = 503;
+    throw error;
+  }
+
+  return key;
+}
+
+function clean(value, maximumLength = 3000) {
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maximumLength);
+}
+
+function buildPrompt({
+  type,
+  instruction,
+  existingText,
+  ticket = {},
+}) {
+  const outputType =
+    type === "email"
+      ? "customer support email"
+      : "private internal support note";
+
+  const rules =
+    type === "email"
+      ? `
+- Return only the email body.
+- Do not write a subject line.
+- Do not write "Subject:" anywhere.
+- Start exactly with: Hello ${clean(ticket.customerName, 200) || "Customer"},
+- Do not use "Dear Customer" or a generic greeting.
+- Mention the ticket reference naturally in the message.
+- Do not promise an outcome that is not confirmed.
+- Remind the customer not to share passwords, PINs or OTPs where relevant.
+- End exactly with:
+Regards,
+Customer Support`
+      : `
+- Write for internal employees only.
+- Include the issue, current status, action taken and next action.
+- Do not claim that an investigation or refund is complete unless confirmed.`;
+
+  return `
+You are helping a fintech customer-support team prepare a ${outputType}.
+
+Writing request:
+${clean(instruction, 1000)}
+
+Ticket context:
+- Reference: ${clean(ticket.ticketNumber, 120)}
+- Customer: ${clean(ticket.customerName, 200)}
+- Subject: ${clean(ticket.subject, 500)}
+- Description: ${clean(ticket.description, 2500)}
+- Status: ${clean(ticket.status, 100)}
+- Priority: ${clean(ticket.priority, 100)}
+- Assigned agent: ${clean(ticket.assignedAgent, 200)}
+- Department: ${clean(ticket.department, 200)}
+
+Existing draft:
+${clean(existingText, 2500) || "None"}
+
+Rules:
+- Use clear, simple and professional English.
+- Keep the draft concise.
+- Do not invent facts, dates, investigations or outcomes.
+- Never request or reproduce passwords, MPINs, PINs, OTPs, CVV numbers or complete card details.
+- If the instruction asks for an MPIN, do not ask the customer to send it.
+- Instead, ask the customer to enter or reset the MPIN only through the official application.
+- Ask for the exact error message or a screenshot if the MPIN issue continues.
+- Clearly remind the customer not to share their MPIN by email, message or call.
+- Return only the final draft, without commentary.
+${rules}
+`.trim();
+}
+
+export async function generateGeminiDraft(payload) {
+  const apiKey = getApiKey();
+
+  const model =
+    process.env.GEMINI_MODEL;
+
+  if (!model) {
+    const error = new Error(
+      "GEMINI_MODEL is not configured.",
+    );
+
+    error.statusCode = 503;
+    throw error;
+  }
+
+  const prompt = buildPrompt(payload);
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(
+      model,
+    )}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: {
+maxOutputTokens: 900,
+        },
+      }),
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    const error = new Error(
+      data?.error?.message ||
+        "Gemini could not generate the draft.",
+    );
+
+    error.statusCode = response.status;
+    throw error;
+  }
+
+  const draft =
+    data?.candidates?.[0]?.content?.parts
+      ?.map((part) => part.text || "")
+      .join("")
+      .trim() || "";
+
+  if (!draft) {
+    const error = new Error(
+      "Gemini returned an empty draft.",
+    );
+
+    error.statusCode = 502;
+    throw error;
+  }
+
+  let cleanedDraft = draft;
+
+  if (payload.type === "email") {
+    const customerName =
+      clean(
+        payload.ticket?.customerName,
+        200,
+      ) || "Customer";
+
+    cleanedDraft = cleanedDraft
+      .replace(
+        /^\s*(?:\*\*)?subject(?:\*\*)?\s*:\s*.*(?:\r?\n)+/i,
+        "",
+      )
+      .replace(
+        /^\s*dear\s+customer\s*,?/i,
+        `Hello ${customerName},`,
+      )
+      .replace(
+        /^\s*hello\s+customer\s*,?/i,
+        `Hello ${customerName},`,
+      )
+      .trim();
+
+    if (
+      !cleanedDraft
+        .toLowerCase()
+        .startsWith(
+          `hello ${customerName.toLowerCase()}`,
+        )
+    ) {
+      cleanedDraft =
+        `Hello ${customerName},\n\n${cleanedDraft}`;
+    }
+  }
+
+  return {
+    draft: cleanedDraft,
+    model,
+  };
+}

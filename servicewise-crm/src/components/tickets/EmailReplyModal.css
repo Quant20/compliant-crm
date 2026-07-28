@@ -280,3 +280,186 @@
     width: 100%;
   }
 }
+
+/* =========================================================
+   INLINE EMAIL HELP WRITER
+========================================================= */
+
+.crm-email-help-write-button {
+  width: auto !important;
+  min-width: 128px !important;
+
+  gap: 7px !important;
+  padding: 7px 11px !important;
+
+  border: 1px solid #61bfb0 !important;
+  border-radius: 7px !important;
+
+  background: #e5f8f4 !important;
+  color: #087f73 !important;
+
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+
+.crm-email-help-write-button:hover:not(:disabled) {
+  background: #d3f3ed !important;
+  border-color: #32a894 !important;
+}
+
+.crm-email-help-write-button span {
+  font-size: 15px;
+}
+
+.crm-email-help-writer-panel {
+  padding: 14px;
+
+  border-top: 1px solid #cfe5e0;
+
+  background: #f7fffd;
+}
+
+.crm-email-help-writer-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.crm-email-help-writer-heading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.crm-email-help-writer-heading strong {
+  color: #087f73;
+  font-size: 13px;
+}
+
+.crm-email-help-writer-heading span {
+  color: #64748b;
+  font-size: 10px;
+}
+
+.crm-email-help-writer-heading > button {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  padding: 0 !important;
+
+  border: 0 !important;
+  border-radius: 6px !important;
+
+  background: transparent !important;
+  color: #64748b !important;
+
+  font-size: 20px !important;
+}
+
+.crm-email-help-writer-panel textarea {
+  width: 100%;
+  min-height: 115px;
+  max-height: 220px;
+
+  padding: 11px 12px;
+
+  resize: vertical;
+
+  border: 1px solid #bdced9;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #1e293b;
+
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.55;
+  outline: none;
+}
+
+.crm-email-help-writer-panel textarea:focus {
+  border-color: #0f9488;
+
+  box-shadow:
+    0 0 0 3px rgba(15, 148, 136, 0.12);
+}
+
+.crm-email-help-writer-examples {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.crm-email-help-writer-examples button {
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+
+  padding: 6px 9px !important;
+
+  border: 1px solid #d2dfe6 !important;
+  border-radius: 7px !important;
+
+  background: #ffffff !important;
+  color: #475569 !important;
+
+  font-size: 10px !important;
+  font-weight: 650 !important;
+}
+
+.crm-email-help-writer-examples
+  button:hover {
+  border-color: #6bc6b7 !important;
+
+  background: #eaf9f6 !important;
+  color: #087f73 !important;
+}
+
+.crm-email-help-writer-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.crm-email-help-writer-actions button {
+  width: auto !important;
+  min-width: 90px !important;
+  height: 35px !important;
+
+  padding: 7px 12px !important;
+
+  border-radius: 7px !important;
+
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+
+.crm-help-writer-cancel {
+  border: 1px solid #cbd5e1 !important;
+
+  background: #ffffff !important;
+  color: #475569 !important;
+}
+
+.crm-help-writer-create {
+  border: 1px solid #0f766e !important;
+
+  background: #0f766e !important;
+  color: #ffffff !important;
+}
+
+.crm-help-writer-create:hover:not(:disabled) {
+  background: #0b625c !important;
+}
+
+.crm-help-writer-create:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+

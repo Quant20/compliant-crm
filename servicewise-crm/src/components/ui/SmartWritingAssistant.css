@@ -1,0 +1,294 @@
+.smart-writing-assistant {
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.smart-writing-trigger {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 34px;
+  gap: 7px;
+  padding: 7px 11px;
+
+  border: 1px solid #9bd9cf;
+  border-radius: 8px;
+
+  background: #ecfdf8;
+  color: #087f73;
+
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+
+  cursor: pointer;
+}
+
+.smart-writing-trigger:hover {
+  background: #dff8f2;
+  border-color: #69c7b8;
+}
+
+.smart-writing-trigger > span {
+  font-size: 15px;
+}
+
+.smart-writing-trigger small {
+  padding: 2px 5px;
+
+  border-radius: 999px;
+
+  background: #ffffff;
+  color: #64748b;
+
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.smart-writing-panel {
+  margin-top: 8px;
+  padding: 13px;
+
+  border: 1px solid #cfe7e2;
+  border-radius: 11px;
+
+  background: #f8fffd;
+
+  box-shadow:
+    0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+.smart-writing-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.smart-writing-header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.smart-writing-header strong {
+  color: #10233f;
+  font-size: 13px;
+}
+
+.smart-writing-header span {
+  color: #64748b;
+  font-size: 10px;
+}
+
+.smart-writing-close {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+
+  border: 0;
+  border-radius: 7px;
+
+  background: transparent;
+  color: #64748b;
+
+  font-size: 20px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.smart-writing-close:hover {
+  background: #e9f2f1;
+  color: #10233f;
+}
+
+.smart-writing-controls {
+  display: grid;
+  grid-template-columns:
+    minmax(120px, 0.35fr)
+    minmax(220px, 1fr);
+
+  gap: 9px;
+  margin-bottom: 11px;
+}
+
+.smart-writing-controls label {
+  display: grid;
+  align-content: start;
+
+  gap: 5px;
+}
+
+.smart-writing-controls label > span,
+.smart-writing-preview label {
+  color: #475569;
+
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.smart-writing-controls select,
+.smart-writing-controls input {
+  width: 100%;
+  min-height: 35px;
+
+  padding: 7px 9px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+
+  background: #ffffff;
+  color: #1e293b;
+
+  font: inherit;
+  font-size: 11px;
+  outline: none;
+}
+
+.smart-writing-controls select:focus,
+.smart-writing-controls input:focus,
+.smart-writing-preview textarea:focus {
+  border-color: #0f9488;
+
+  box-shadow:
+    0 0 0 3px rgba(15, 148, 136, 0.12);
+}
+
+.smart-writing-prompt > div {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto;
+
+  gap: 6px;
+}
+
+.smart-writing-prompt button {
+  min-height: 35px;
+  padding: 7px 12px;
+
+  border: 1px solid #0f766e;
+  border-radius: 7px;
+
+  background: #0f766e;
+  color: #ffffff;
+
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+
+  cursor: pointer;
+}
+
+.smart-writing-template-list {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 6px;
+  margin-bottom: 11px;
+}
+
+.smart-writing-template-list button {
+  min-height: 30px;
+  padding: 6px 9px;
+
+  border: 1px solid #d6e1e8;
+  border-radius: 7px;
+
+  background: #ffffff;
+  color: #334155;
+
+  font: inherit;
+  font-size: 10px;
+  font-weight: 650;
+
+  cursor: pointer;
+}
+
+.smart-writing-template-list button:hover {
+  border-color: #75cfc0;
+
+  background: #eaf9f6;
+  color: #087f73;
+}
+
+.smart-writing-preview {
+  display: grid;
+
+  gap: 6px;
+}
+
+.smart-writing-preview textarea {
+  width: 100%;
+  min-height: 170px;
+
+  padding: 11px;
+
+  resize: vertical;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #1e293b;
+
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.55;
+  outline: none;
+}
+
+.smart-writing-preview-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 7px;
+}
+
+.smart-writing-preview-actions button {
+  min-height: 32px;
+  padding: 6px 11px;
+
+  border-radius: 7px;
+
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+
+  cursor: pointer;
+}
+
+.smart-writing-clear {
+  border: 1px solid #cbd5e1;
+
+  background: #ffffff;
+  color: #475569;
+}
+
+.smart-writing-insert {
+  border: 1px solid #0f766e;
+
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.smart-writing-notice {
+  margin: 10px 0 0;
+
+  color: #718096;
+
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  .smart-writing-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .smart-writing-prompt > div {
+    grid-template-columns: 1fr;
+  }
+}

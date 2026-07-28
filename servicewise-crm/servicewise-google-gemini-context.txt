@@ -1,0 +1,720 @@
+==================================================
+SERVER FILE LIST
+==================================================
+server/.env.example
+server/.gitignore
+server/config/credentials.js
+server/config/db.js
+server/controllers/authController.js
+server/controllers/integrationController.js
+server/controllers/ticketController.js
+server/data/.gitkeep
+server/data/tickets.json
+server/data/users.json
+server/middleware/authMiddleware.js
+server/middleware/errorMiddleware.js
+server/models/Ticket.js
+server/package-lock.json
+server/package.json
+server/routes/authRoutes.js
+server/routes/integrationRoutes.js
+server/routes/ticketRoutes.js
+server/server.js
+server/services/gmailService.js
+server/services/ticketAutomationService.js
+server/services/whatsappService.js
+
+==================================================
+ROOT PACKAGE.JSON
+==================================================
+{
+  "name": "servicewise-crm",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.8",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-icons": "^5.7.0",
+    "react-router-dom": "^7.18.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "oxlint": "^1.71.0",
+    "vite": "^8.1.1"
+  }
+}
+
+==================================================
+SERVER PACKAGE.JSON
+==================================================
+{
+  "name": "servicewise-crm-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1"
+  }
+}
+
+==================================================
+SERVER.JS
+==================================================
+import { config } from "dotenv"; config({ path: new URL("../server/.env", import.meta.url).pathname });; import cors from "cors"; import express from "express"; import { connectDataStore } from "./config/db.js"; import ticketRoutes from "./routes/ticketRoutes.js"; import integrationRoutes from "./routes/integrationRoutes.js"; import authRoutes from "./routes/authRoutes.js"; import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
+const app = express(); const port = Number(process.env.PORT) || 5000;
+await connectDataStore();
+app.use(cors({ origin: process.env.CLIENT_ORIGIN || "http://localhost:5174" })); app.use(express.json({ limit: "1mb" }));
+app.get("/api/health", (req, res) => { res.json({ success: true, message: "CRM API running.", timestamp: new Date().toISOString() }); });
+app.use("/api/auth", authRoutes); app.use("/api/tickets", ticketRoutes); app.use("/api/integrations", integrationRoutes);
+app.use(notFound); app.use(errorHandler);
+app.listen(port, () => { console.log("CRM API on http://localhost:" + port); });
+
+==================================================
+SERVER ROUTES AND SERVICES
+==================================================
+
+---------------- FILE: server/routes/integrationRoutes.js ----------------
+import { Router } from "express"; import { receiveEmailTicket, receiveWhatsAppTicket } from "../controllers/integrationController.js"; import { requireApiKey } from "../middleware/authMiddleware.js";
+const router = Router(); router.post("/email/import", requireApiKey, receiveEmailTicket); router.post("/whatsapp/webhook", requireApiKey, receiveWhatsAppTicket); export default router;
+
+---------------- FILE: server/services/gmailService.js ----------------
+export function normalizeEmailPayload(payload = {}) {
+  const senderName = payload.senderName || payload.fromName || "Email Customer";
+  const senderEmail = payload.senderEmail || payload.from || "";
+  const subject = payload.subject || "Email complaint";
+  const message = payload.message || payload.body || payload.text || "";
+
+  if (!String(message).trim()) {
+    const error = new Error("Email message content is required.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return {
+    customerName: senderName,
+    customerEmail: senderEmail,
+    customerPhone: "",
+    subject,
+    description: message,
+    department: payload.department || "Customer Support",
+    priority: payload.priority || "Medium",
+    status: "Open",
+    assignedAgent: "",
+    category: payload.category || "General",
+    channel: "Email",
+  };
+}
+
+---------------- FILE: server/controllers/integrationController.js ----------------
+import { createTicketRecord } from "../models/Ticket.js";
+export async function receiveEmailTicket(req, res, next) { try { const s = req.body.senderName||req.body.fromName||"Email"; const e = req.body.senderEmail||req.body.from||""; const sub = req.body.subject||"Email"; const msg = req.body.message||req.body.body||req.body.text||""; if (!msg.trim()) { res.status(400); throw new Error("Message required."); } res.status(201).json({ success: true, data: await createTicketRecord({ customerName:s, customerEmail:e, customerPhone:"", subject:sub, description:msg, channel:"Email" }) }); } catch(e) { next(e); } }
+export async function receiveWhatsAppTicket(req, res, next) { try { const n = req.body.customerName||req.body.profileName||"WhatsApp"; const p = req.body.customerPhone||req.body.from||""; const msg = req.body.message||req.body.text||""; if (!msg.trim()) { res.status(400); throw new Error("Message required."); } res.status(201).json({ success: true, data: await createTicketRecord({ customerName:n, customerEmail:"", customerPhone:p, subject:req.body.subject||"WhatsApp", description:msg, channel:"WhatsApp" }) }); } catch(e) { next(e); } }
+
+==================================================
+ENVIRONMENT VARIABLE NAMES
+==================================================
+PORT=5000
+CLIENT_ORIGIN=http://localhost:5173
+API_KEY=
+GMAIL_CLIENT_ID=
+GMAIL_CLIENT_SECRET=
+GMAIL_REFRESH_TOKEN=
+WHATSAPP_ACCESS_TOKEN=
+WHATSAPP_PHONE_NUMBER_ID=
+
+==================================================
+EMAIL SERVICE
+==================================================
+import { supabase } from "./supabaseClient";
+
+async function getFunctionErrorMessage(error) {
+  let message =
+    error?.message ||
+    "Unable to send the email.";
+
+  const response = error?.context;
+
+  if (
+    response &&
+    typeof response.json === "function"
+  ) {
+    try {
+      const responseBody =
+        await response.json();
+
+      message =
+        responseBody?.error ||
+        responseBody?.message ||
+        message;
+    } catch {
+      // Keep the original Supabase error message.
+    }
+  }
+
+  return message;
+}
+
+export async function sendTicketEmail({
+  ticketId,
+  ticketNumber,
+  mode = "reply",
+  to,
+  cc = [],
+  bcc = [],
+  subject,
+  bodyText,
+  bodyHtml,
+}) {
+  const { data, error } =
+    await supabase.functions.invoke(
+      "send-ticket-email",
+      {
+        body: {
+          ticketId,
+          ticketNumber,
+          mode,
+          to,
+          cc,
+          bcc,
+          subject,
+          bodyText,
+          bodyHtml,
+        },
+      },
+    );
+
+  if (error) {
+    const message =
+      await getFunctionErrorMessage(error);
+
+    throw new Error(message);
+  }
+
+  if (!data?.success) {
+    throw new Error(
+      data?.error ||
+        "The email service did not confirm delivery.",
+    );
+  }
+
+  return data;
+}
+
+==================================================
+CURRENT MEETING HANDLER
+==================================================
+   378	  const handleScheduleMeeting = async (event) => {
+   379	    event.preventDefault();
+   380	
+   381	    if (
+   382	      !meetingForm.title.trim() ||
+   383	      !meetingForm.date ||
+   384	      !meetingForm.startTime ||
+   385	      !meetingForm.endTime
+   386	    ) {
+   387	      setError(
+   388	        "Meeting title, date, start time and end time are required.",
+   389	      );
+   390	
+   391	      return;
+   392	    }
+   393	
+   394	    const startDate = new Date(
+   395	      `${meetingForm.date}T${meetingForm.startTime}`,
+   396	    );
+   397	
+   398	    const endDate = new Date(
+   399	      `${meetingForm.date}T${meetingForm.endTime}`,
+   400	    );
+   401	
+   402	    if (
+   403	      Number.isNaN(startDate.getTime()) ||
+   404	      Number.isNaN(endDate.getTime())
+   405	    ) {
+   406	      setError(
+   407	        "Please enter a valid meeting date and time.",
+   408	      );
+   409	
+   410	      return;
+   411	    }
+   412	
+   413	    if (endDate <= startDate) {
+   414	      setError(
+   415	        "End time must be later than start time.",
+   416	      );
+   417	
+   418	      return;
+   419	    }
+   420	
+   421	    const meeting = {
+   422	      id: Date.now(),
+   423	      ticketId: ticket?.id,
+   424	      ticketNumber,
+   425	      title: meetingForm.title.trim(),
+   426	      date: meetingForm.date,
+   427	      startTime: meetingForm.startTime,
+   428	      endTime: meetingForm.endTime,
+   429	      attendees:
+   430	        meetingForm.attendeeEmail.trim(),
+   431	      description:
+   432	        meetingForm.description.trim(),
+   433	      createdBy: currentUserName,
+   434	      createdAt: new Date().toISOString(),
+   435	    };
+   436	
+   437	    try {
+   438	      const savedMeetings = JSON.parse(
+   439	        localStorage.getItem(
+   440	          "servicewise_ticket_meetings",
+   441	        ) || "[]",
+   442	      );
+   443	
+   444	      localStorage.setItem(
+   445	        "servicewise_ticket_meetings",
+   446	        JSON.stringify([
+   447	          ...savedMeetings,
+   448	          meeting,
+   449	        ]),
+   450	      );
+   451	    } catch (storageError) {
+   452	      console.error(
+   453	        "Unable to save meeting:",
+   454	        storageError,
+   455	      );
+   456	
+   457	      setError(
+   458	        "The meeting could not be saved.",
+   459	      );
+   460	
+   461	      return;
+   462	    }
+   463	
+   464	    try {
+   465	      if (
+   466	        typeof onMeetingSaved === "function"
+   467	      ) {
+   468	        await onMeetingSaved(meeting);
+   469	      }
+   470	
+   471	      closeModal();
+   472	    } catch (saveError) {
+   473	      console.error(
+   474	        "Unable to save meeting activity:",
+   475	        saveError,
+   476	      );
+   477	
+   478	      setError(
+   479	        saveError?.message ||
+   480	          "The meeting was opened, but its activity could not be saved.",
+   481	      );
+   482	    }
+   483	  };
+   484	
+   485	  const handleCloseTicket = () => {
+   486	    if (
+   487	      isClosed ||
+   488	      typeof onCloseTicket !== "function"
+   489	    ) {
+   490	      return;
+   491	    }
+   492	
+   493	    const confirmed = window.confirm(
+   494	      `Close ${ticketNumber}?`,
+   495	    );
+   496	
+   497	    if (confirmed) {
+   498	      onCloseTicket();
+   499	    }
+   500	  };
+   501	
+   502	  return (
+   503	    <>
+   504	      <div className="crm-ticket-action-strip">
+   505	        <button
+   506	          type="button"
+   507	          className="crm-ticket-action-button"
+   508	          onClick={() => {
+   509	            if (typeof onNote === "function") {
+   510	              onNote();
+   511	            }
+   512	          }}
+   513	        >
+   514	          <span>
+   515	            <FaStickyNote />
+   516	          </span>
+   517	          Note
+   518	        </button>
+   519	
+   520	        <button
+   521	          type="button"
+   522	          className="crm-ticket-action-button"
+   523	          onClick={() => openModal("email")}
+   524	          disabled={!customerEmail}
+   525	        >
+   526	          <span>
+   527	            <FaEnvelope />
+   528	          </span>
+   529	          Email
+   530	        </button>
+   531	
+   532	        <button
+   533	          type="button"
+   534	          className="crm-ticket-action-button"
+   535	          onClick={() => openModal("call")}
+   536	        >
+   537	          <span>
+   538	            <FaPhone />
+   539	          </span>
+   540	          Call
+   541	        </button>
+   542	
+   543	        <button
+   544	          type="button"
+   545	          className="crm-ticket-action-button"
+   546	          onClick={() => openModal("task")}
+   547	        >
+   548	          <span>
+
+==================================================
+NOTE HELP ME WRITE HANDLER
+==================================================
+   209	  const handleCreateNoteDraft = () => {
+   210	    const request =
+   211	      helpWriterInstruction.trim();
+   212	
+   213	    const normalizedRequest =
+   214	      request.toLowerCase();
+   215	
+   216	    const existingText =
+   217	      editorRef.current?.innerText?.trim() ||
+   218	      "";
+   219	
+   220	    const status =
+   221	      ticket?.status || "Open";
+   222	
+   223	    const priority =
+   224	      ticket?.priority || "Normal";
+   225	
+   226	    let draft = `Issue:
+   227	${ticketSubject}
+   228	
+   229	Current status:
+   230	The complaint is currently under review.
+   231	
+   232	Action taken:
+   233	The case has been reviewed and the available ticket information has been checked.
+   234	
+   235	Next action:
+   236	Follow up with ${assignedDepartment} and update the customer when confirmation is received.
+   237	
+   238	Reference:
+   239	${ticketNumber}`;
+   240	
+   241	    if (
+   242	      normalizedRequest.includes("summar") ||
+   243	      normalizedRequest.includes("overview")
+   244	    ) {
+   245	      draft = `Ticket summary:
+   246	
+   247	• Reference: ${ticketNumber}
+   248	• Customer: ${customerName}
+   249	• Issue: ${ticketSubject}
+   250	• Status: ${status}
+   251	• Priority: ${priority}
+   252	• Assigned to: ${assignedAgent}
+   253	• Department: ${assignedDepartment}${
+   254	        ticketDescription
+   255	          ? `\n• Details: ${ticketDescription}`
+   256	          : ""
+   257	      }
+   258	
+   259	Next action:
+   260	Review the case with ${assignedDepartment} and record the confirmed outcome.`;
+   261	    } else if (
+   262	      normalizedRequest.includes("payment") ||
+   263	      normalizedRequest.includes("transaction") ||
+   264	      normalizedRequest.includes("refund") ||
+   265	      normalizedRequest.includes("reversal")
+   266	    ) {
+   267	      draft = `Customer reported a payment-related issue under ${ticketNumber}.
+   268	
+   269	The transaction details require verification with ${assignedDepartment}. The case remains under review, and no final outcome has been confirmed yet.
+   270	
+   271	Next action:
+   272	Verify the transaction status, reconciliation record and reference details before updating the customer.`;
+   273	    } else if (
+   274	      normalizedRequest.includes("escalat") ||
+   275	      normalizedRequest.includes("urgent") ||
+   276	      normalizedRequest.includes("priority")
+   277	    ) {
+   278	      draft = `${ticketNumber} has been escalated to ${assignedDepartment} due to the pending ${ticketSubject.toLowerCase()}.
+   279	
+   280	Current status: ${status}
+   281	Priority: ${priority}
+   282	
+   283	Next action:
+   284	The assigned team should review the case on priority and provide a confirmed update for the customer.`;
+   285	    } else if (
+   286	      normalizedRequest.includes("follow") ||
+   287	      normalizedRequest.includes("pending") ||
+   288	      normalizedRequest.includes("waiting")
+   289	    ) {
+   290	      draft = `Follow-up note for ${ticketNumber}:
+   291	
+   292	The case is still pending with ${assignedDepartment}. A confirmed resolution has not yet been received.
+   293	
+   294	Next action:
+   295	Follow up with the assigned team and update the ticket once a response is received.`;
+   296	    } else if (
+   297	      normalizedRequest.includes("resolved") ||
+   298	      normalizedRequest.includes("fixed") ||
+   299	      normalizedRequest.includes("close")
+   300	    ) {
+   301	      draft = `Resolution note for ${ticketNumber}:
+   302	
+   303	The reported issue, "${ticketSubject}", has been reviewed and marked as resolved.
+   304	
+   305	Action completed:
+   306	The required review or correction has been completed by ${assignedDepartment}.
+   307	
+   308	Next action:
+   309	Confirm the outcome with the customer before closing the ticket permanently.`;
+   310	    } else if (
+   311	      normalizedRequest.includes("detail") ||
+   312	      normalizedRequest.includes("information") ||
+   313	      normalizedRequest.includes("document") ||
+   314	      normalizedRequest.includes("screenshot")
+   315	    ) {
+   316	      draft = `Additional information is required to continue the investigation for ${ticketNumber}.
+   317	
+   318	Required details:
+   319	• Transaction or reference ID
+   320	• Date and approximate time
+   321	• Amount, where applicable
+   322	• Screenshot or exact error message
+   323	• Any supporting document
+   324	
+   325	Next action:
+   326	Request the missing details from the customer and resume the investigation after receipt.`;
+   327	    } else if (
+   328	      normalizedRequest.includes("short") ||
+   329	      normalizedRequest.includes("concise")
+   330	    ) {
+   331	      draft = `${ticketNumber}: ${ticketSubject} is under review with ${assignedDepartment}. Follow-up is pending, and the customer should be updated after confirmation.`;
+   332	    } else if (
+   333	      normalizedRequest.includes("next action") ||
+   334	      normalizedRequest.includes("next step")
+   335	    ) {
+   336	      draft = existingText
+   337	        ? `${existingText}
+   338	
+   339	Next action:
+   340	Follow up with ${assignedDepartment}, confirm the current status and update the customer.`
+   341	        : `Next action for ${ticketNumber}:
+   342	
+   343	Follow up with ${assignedDepartment}, confirm the current status and update the customer once verified.`;
+   344	    } else if (
+   345	      normalizedRequest.includes("improve") ||
+   346	      normalizedRequest.includes("professional") ||
+   347	      normalizedRequest.includes("rewrite")
+   348	    ) {
+   349	      if (existingText) {
+   350	        draft = `Internal update for ${ticketNumber}:
+   351	
+   352	${existingText}
+   353	
+   354	Next action:
+   355	Review any pending requirement with ${assignedDepartment} and record the confirmed outcome.`;
+   356	      } else {
+   357	        draft = `Internal update for ${ticketNumber}:
+   358	
+   359	The reported issue is currently under review. The available ticket information has been checked, and the matter is awaiting confirmation from ${assignedDepartment}.
+   360	
+   361	Next action:
+   362	Follow up with the relevant team and update the customer after verification.`;
+   363	      }
+   364	    } else if (request) {
+   365	      draft = `Internal note for ${ticketNumber}:
+   366	
+   367	${request}
+   368	
+   369	Ticket issue:
+   370	${ticketSubject}
+   371	
+   372	Current status:
+   373	${status}
+   374	
+   375	Next action:
+   376	Follow up with ${assignedDepartment} and record the confirmed outcome.`;
+   377	    }
+   378	
+   379	    setEditorText(draft);
+   380	  };
+   381	
+   382	  const handleSubmit = async () => {
+   383	    const note =
+   384	      editorRef.current?.innerText?.trim() ||
+   385	      "";
+   386	
+   387	    const html =
+   388	      editorRef.current?.innerHTML || "";
+   389	
+   390	    if (!note) {
+   391	      setError("Write a note before saving.");
+   392	      editorRef.current?.focus();
+   393	      return;
+   394	    }
+   395	
+   396	    setIsSaving(true);
+   397	    setError("");
+   398	
+   399	    try {
+
+==================================================
+EMAIL HELP ME WRITE HANDLER
+==================================================
+   327	  const handleCreateEmailDraft = () => {
+   328	    const request =
+   329	      helpWriterInstruction.trim();
+   330	
+   331	    const normalizedRequest =
+   332	      request.toLowerCase();
+   333	
+   334	    const issue =
+   335	      ticket?.subject ||
+   336	      "the reported issue";
+   337	
+   338	    let draft = `Hello ${customerName},
+   339	
+   340	${request || "Thank you for contacting us. Your complaint is currently under review, and we will share an update as soon as possible."}
+   341	
+   342	Ticket reference: ${ticketNumber}
+   343	
+   344	Regards,
+   345	Customer Support`;
+   346	
+   347	    if (
+   348	      normalizedRequest.includes("payment") ||
+   349	      normalizedRequest.includes("refund") ||
+   350	      normalizedRequest.includes("reversal") ||
+   351	      normalizedRequest.includes("transaction")
+   352	    ) {
+   353	      draft = `Hello ${customerName},
+   354	
+   355	Thank you for contacting us regarding the payment issue reported under ${ticketNumber}.
+   356	
+   357	Our team is reviewing the transaction status and coordinating with the relevant department. We will share an update once verification is completed.
+   358	
+   359	Please do not share your password, PIN or OTP.
+   360	
+   361	Regards,
+   362	Customer Support`;
+   363	    } else if (
+   364	      normalizedRequest.includes("detail") ||
+   365	      normalizedRequest.includes("information") ||
+   366	      normalizedRequest.includes("screenshot") ||
+   367	      normalizedRequest.includes("document")
+   368	    ) {
+   369	      draft = `Hello ${customerName},
+   370	
+   371	To continue our investigation for ${ticketNumber}, please provide:
+   372	
+   373	• Transaction or reference ID
+   374	• Date and approximate time
+   375	• Amount, where applicable
+   376	• Screenshot or error message
+   377	• Any other relevant information
+   378	
+   379	Please do not share your password, PIN or OTP.
+   380	
+   381	Regards,
+   382	Customer Support`;
+   383	    } else if (
+   384	      normalizedRequest.includes("delay") ||
+   385	      normalizedRequest.includes("apolog") ||
+   386	      normalizedRequest.includes("sorry")
+   387	    ) {
+   388	      draft = `Hello ${customerName},
+   389	
+   390	We sincerely apologize for the delay in resolving ${ticketNumber}.
+   391	
+   392	The matter remains under review. We have followed up with the relevant team and will share an update as soon as possible.
+   393	
+   394	Regards,
+   395	Customer Support`;
+   396	    } else if (
+   397	      normalizedRequest.includes("resolved") ||
+   398	      normalizedRequest.includes("fixed") ||
+   399	      normalizedRequest.includes("close")
+   400	    ) {
+   401	      draft = `Hello ${customerName},
+   402	
+   403	The review of ${issue} under ${ticketNumber} has been completed, and the issue has been marked as resolved.
+   404	
+   405	Please confirm whether everything is now working correctly.
+   406	
+   407	Regards,
+   408	Customer Support`;
+   409	    } else if (
+   410	      normalizedRequest.includes("follow")
+   411	    ) {
+   412	      draft = `Hello ${customerName},
+   413	
+   414	We are following up regarding ${ticketNumber}.
+   415	
+   416	Please let us know whether the issue is still occurring or whether you require any further assistance.
+   417	
+   418	Regards,
+   419	Customer Support`;
+   420	    }
+   421	
+   422	    if (!bodyEditorRef.current) {
+   423	      return;
+   424	    }
+   425	
+   426	    bodyEditorRef.current.innerText =
+   427	      draft;
+   428	
+   429	    setError("");
+   430	    setShowHelpWriter(false);
+   431	    bodyEditorRef.current.focus();
+   432	  };
+   433	
+   434	  /* =======================================================
+   435	     REPLY / REPLY ALL / NEW EMAIL
+   436	  ======================================================= */
+   437	
+   438	  const handleModeChange = (nextMode) => {
+   439	    if (sending) {
+   440	      return;
+   441	    }
+   442	
+   443	    setMode(nextMode);
+   444	    setError("");
+   445	
+   446	    if (nextMode === "new") {
+   447	      setTo("");
+   448	      setCc("");
+   449	      setBcc("");
+   450	      setSubject("");
+   451	      setShowCopies(false);
+   452	

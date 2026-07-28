@@ -151,7 +151,7 @@ const users = [
     firstName: "Qosain",
     lastName: "",
     username: "Qosain",
-    email: "usman.ali@servicewise.com",
+    email: "qosain@servicewise.com",
     phone: "03000000006",
     department: "Customer Support",
     team: "Customer Support",

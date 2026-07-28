@@ -434,63 +434,31 @@ export default function TicketActionBar({
       createdAt: new Date().toISOString(),
     };
 
-    const details = [
-      `Ticket: ${ticketNumber}`,
-      `Customer: ${customerName}`,
-      meeting.description,
-    ]
-      .filter(Boolean)
-      .join("\n\n");
-
-    const calendarUrl = new URL(
-      "https://calendar.google.com/calendar/render",
-    );
-
-    calendarUrl.searchParams.set(
-      "action",
-      "TEMPLATE",
-    );
-
-    calendarUrl.searchParams.set(
-      "text",
-      meeting.title,
-    );
-
-    calendarUrl.searchParams.set(
-      "dates",
-      `${formatGoogleDate(
-        startDate,
-      )}/${formatGoogleDate(endDate)}`,
-    );
-
-    calendarUrl.searchParams.set(
-      "details",
-      details,
-    );
-
-    if (meeting.attendees) {
-      calendarUrl.searchParams.set(
-        "add",
-        meeting.attendees,
+    try {
+      const savedMeetings = JSON.parse(
+        localStorage.getItem(
+          "servicewise_ticket_meetings",
+        ) || "[]",
       );
-    }
 
-    const calendarAddress =
-      calendarUrl.toString();
-
-    const calendarWindow = window.open(
-      "about:blank",
-      "_blank",
-    );
-
-    if (calendarWindow) {
-      calendarWindow.opener = null;
-      calendarWindow.location.href =
-        calendarAddress;
-    } else {
-      window.location.assign(
-        calendarAddress,
+      localStorage.setItem(
+        "servicewise_ticket_meetings",
+        JSON.stringify([
+          ...savedMeetings,
+          meeting,
+        ]),
       );
+    } catch (storageError) {
+      console.error(
+        "Unable to save meeting:",
+        storageError,
+      );
+
+      setError(
+        "The meeting could not be saved.",
+      );
+
+      return;
     }
 
     try {
@@ -760,7 +728,7 @@ export default function TicketActionBar({
       {activeModal === "meeting" && (
         <ModalShell
           title="Schedule meeting"
-          subtitle="Select a date and time, then add the meeting to Google Calendar."
+          subtitle="Save the meeting directly in ServiceWise CRM."
           onClose={closeModal}
         >
           <form
@@ -879,7 +847,7 @@ export default function TicketActionBar({
                 className="crm-action-primary"
               >
                 <FaCalendarAlt />
-                Add to Google Calendar
+                Schedule meeting
               </button>
             </footer>
           </form>

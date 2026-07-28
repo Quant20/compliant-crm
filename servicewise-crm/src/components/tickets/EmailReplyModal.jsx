@@ -19,6 +19,8 @@ import { sendTicketEmail } from "../../services/emailService";
 
 import "./EmailReplyModal.css";
 
+import { generateAiDraft } from "../../services/integrationService";
+
 /* =========================================================
    TICKET HELPERS
 ========================================================= */
@@ -232,6 +234,21 @@ export default function EmailReplyModal({
   const [error, setError] =
     useState("");
 
+  const [
+    showHelpWriter,
+    setShowHelpWriter,
+  ] = useState(false);
+
+  const [
+    helpWriterInstruction,
+    setHelpWriterInstruction,
+  ] = useState("");
+
+  const [
+    isGeneratingDraft,
+    setIsGeneratingDraft,
+  ] = useState(false);
+
   /* =======================================================
      RESET WHEN TICKET CHANGES
   ======================================================= */
@@ -312,6 +329,82 @@ export default function EmailReplyModal({
     bodyEditorRef.current?.focus();
 
     runEditorCommand(command);
+  };
+
+  const handleCreateEmailDraft = async () => {
+    const instruction =
+      helpWriterInstruction.trim();
+
+    if (!instruction) {
+      setError(
+        "Describe the email you want Gemini to prepare.",
+      );
+      return;
+    }
+
+    const existingText =
+      bodyEditorRef.current?.innerText?.trim() ||
+      "";
+
+    setIsGeneratingDraft(true);
+    setError("");
+
+    try {
+      const result = await generateAiDraft({
+        type: "email",
+        instruction,
+        existingText,
+        ticket: {
+          ticketNumber,
+          customerName,
+          subject:
+            ticket?.subject ||
+            "Customer complaint",
+          description:
+            ticket?.description || "",
+          status:
+            ticket?.status || "Open",
+          priority:
+            ticket?.priority || "Normal",
+          assignedAgent:
+            ticket?.assignedAgent?.name ||
+            ticket?.assignedAgent ||
+            "",
+          department:
+            ticket?.department?.name ||
+            ticket?.department ||
+            "",
+        },
+      });
+
+      if (!result?.draft) {
+        throw new Error(
+          "Gemini returned an empty email.",
+        );
+      }
+
+      if (!bodyEditorRef.current) {
+        return;
+      }
+
+      bodyEditorRef.current.innerText =
+        result.draft;
+
+      setShowHelpWriter(false);
+      bodyEditorRef.current.focus();
+    } catch (draftError) {
+      console.error(
+        "Gemini email generation failed:",
+        draftError,
+      );
+
+      setError(
+        draftError?.message ||
+          "Gemini could not create the email.",
+      );
+    } finally {
+      setIsGeneratingDraft(false);
+    }
   };
 
   /* =======================================================
@@ -727,7 +820,23 @@ export default function EmailReplyModal({
           />
 
           <div className="crm-email-toolbar">
-            <button
+              <button
+                type="button"
+                className="crm-email-help-write-button"
+                onClick={() =>
+                  setShowHelpWriter(
+                    (current) => !current,
+                  )
+                }
+                disabled={sending}
+                aria-expanded={showHelpWriter}
+                title="Create an email draft"
+              >
+                <span>✦</span>
+                Help me write
+              </button>
+
+              <button
               type="button"
               onClick={() =>
                 applyCommand("bold")
@@ -788,6 +897,118 @@ export default function EmailReplyModal({
               <FaPaperclip />
             </button>
           </div>
+
+            {showHelpWriter && (
+              <section className="crm-email-help-writer-panel">
+                <div className="crm-email-help-writer-heading">
+                  <div>
+                    <strong>
+                      ✦ Help me write
+                    </strong>
+
+                    <span>
+                      Describe the email you want to prepare.
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowHelpWriter(false)
+                    }
+                    aria-label="Close writing assistant"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <textarea
+                  value={helpWriterInstruction}
+                  onChange={(event) =>
+                    setHelpWriterInstruction(
+                      event.target.value,
+                    )
+                  }
+                  placeholder="Example: Write a polite and detailed email apologizing for the payment delay. Tell the customer that the transaction is under investigation and that we will update them within two working days."
+                  disabled={sending}
+                  autoFocus
+                />
+
+                <div className="crm-email-help-writer-examples">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setHelpWriterInstruction(
+                        "Acknowledge the complaint and confirm that it is under review.",
+                      )
+                    }
+                  >
+                    Acknowledge complaint
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setHelpWriterInstruction(
+                        "Apologize for the payment delay and confirm that the transaction is being investigated.",
+                      )
+                    }
+                  >
+                    Payment delay
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setHelpWriterInstruction(
+                        "Request the transaction reference, date, amount and screenshot from the customer.",
+                      )
+                    }
+                  >
+                    Request details
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setHelpWriterInstruction(
+                        "Confirm that the issue has been resolved and ask the customer to verify it.",
+                      )
+                    }
+                  >
+                    Resolution email
+                  </button>
+                </div>
+
+                <div className="crm-email-help-writer-actions">
+                  <button
+                    type="button"
+                    className="crm-help-writer-cancel"
+                    onClick={() => {
+                      setHelpWriterInstruction("");
+                      setShowHelpWriter(false);
+                    }}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    className="crm-help-writer-create"
+                    onClick={handleCreateEmailDraft}
+                    disabled={
+                      sending ||
+                      isGeneratingDraft ||
+                      !helpWriterInstruction.trim()
+                    }
+                  >
+                    {isGeneratingDraft
+                      ? "Generating..."
+                      : "Create draft"}
+                  </button>
+                </div>
+              </section>
+            )}
         </div>
 
         <footer className="crm-email-footer">

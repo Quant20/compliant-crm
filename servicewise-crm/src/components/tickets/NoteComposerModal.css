@@ -766,3 +766,134 @@
     padding-bottom: 7px;
   }
 }
+
+/* =========================================================
+   FINAL HELP WRITER VISIBILITY FIX
+   Opens the assistant over the editor area
+========================================================= */
+
+.crm-note-email-composer .crm-note-editor-shell {
+  position: relative !important;
+  min-height: 260px !important;
+  overflow: hidden !important;
+}
+
+.crm-note-email-composer .crm-email-help-writer-panel {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 100 !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+
+  padding: 14px 16px 0 !important;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  background: #f8fffd !important;
+  border: 0 !important;
+}
+
+.crm-note-email-composer
+  .crm-email-help-writer-heading {
+  flex: 0 0 auto !important;
+}
+
+.crm-note-email-composer
+  .crm-email-help-writer-panel textarea {
+  flex: 0 0 auto !important;
+
+  width: 100% !important;
+  min-height: 82px !important;
+  max-height: 110px !important;
+
+  margin-top: 10px !important;
+  resize: vertical !important;
+}
+
+.crm-note-email-composer
+  .crm-email-help-writer-examples {
+  flex: 0 0 auto !important;
+
+  display: flex !important;
+  flex-wrap: wrap !important;
+
+  gap: 6px !important;
+  margin-top: 10px !important;
+}
+
+.crm-note-email-composer
+  .crm-email-help-writer-actions {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 110 !important;
+
+  flex: 0 0 auto !important;
+
+  display: flex !important;
+  justify-content: flex-end !important;
+
+  gap: 10px !important;
+  width: 100% !important;
+
+  margin-top: auto !important;
+  padding: 12px 0 14px !important;
+
+  background: #f8fffd !important;
+  border-top: 1px solid #d8e7e3 !important;
+}
+
+.crm-note-email-composer
+  .crm-help-writer-cancel,
+.crm-note-email-composer
+  .crm-help-writer-create {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  min-width: 105px !important;
+  min-height: 38px !important;
+
+  padding: 8px 16px !important;
+
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.crm-note-email-composer
+  .crm-help-writer-create {
+  color: #ffffff !important;
+  background: #008f7a !important;
+  border: 1px solid #008f7a !important;
+}
+
+.crm-note-email-composer
+  .crm-help-writer-cancel {
+  color: #334155 !important;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+@media (max-height: 720px) {
+  .crm-note-email-composer
+    .crm-note-editor-shell {
+    min-height: 230px !important;
+  }
+
+  .crm-note-email-composer
+    .crm-email-help-writer-panel textarea {
+    min-height: 65px !important;
+    max-height: 80px !important;
+  }
+
+  .crm-note-email-composer
+    .crm-email-help-writer-examples button {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+  }
+}

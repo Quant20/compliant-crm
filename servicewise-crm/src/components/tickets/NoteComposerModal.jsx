@@ -20,6 +20,8 @@ import {
 import "./EmailReplyModal.css";
 import "./NoteComposerModal.css";
 
+import { generateAiDraft } from "../../services/integrationService";
+
 function getCustomerName(ticket) {
   return (
     ticket?.customer?.name ||
@@ -135,6 +137,11 @@ export default function NoteComposerModal({
     setHelpWriterInstruction,
   ] = useState("");
 
+  const [
+    isGeneratingDraft,
+    setIsGeneratingDraft,
+  ] = useState(false);
+
   useEffect(() => {
     const handleEscape = (event) => {
       if (
@@ -206,177 +213,63 @@ export default function NoteComposerModal({
     }, 0);
   };
 
-  const handleCreateNoteDraft = () => {
-    const request =
+  const handleCreateNoteDraft = async () => {
+    const instruction =
       helpWriterInstruction.trim();
 
-    const normalizedRequest =
-      request.toLowerCase();
+    if (!instruction) {
+      setError(
+        "Describe the note you want Gemini to prepare.",
+      );
+      return;
+    }
 
     const existingText =
       editorRef.current?.innerText?.trim() ||
       "";
 
-    const status =
-      ticket?.status || "Open";
+    setIsGeneratingDraft(true);
+    setError("");
 
-    const priority =
-      ticket?.priority || "Normal";
+    try {
+      const result = await generateAiDraft({
+        type: "internal_note",
+        instruction,
+        existingText,
+        ticket: {
+          ticketNumber,
+          customerName,
+          subject: ticketSubject,
+          description: ticketDescription,
+          status:
+            ticket?.status || "Open",
+          priority:
+            ticket?.priority || "Normal",
+          assignedAgent,
+          department: assignedDepartment,
+        },
+      });
 
-    let draft = `Issue:
-${ticketSubject}
-
-Current status:
-The complaint is currently under review.
-
-Action taken:
-The case has been reviewed and the available ticket information has been checked.
-
-Next action:
-Follow up with ${assignedDepartment} and update the customer when confirmation is received.
-
-Reference:
-${ticketNumber}`;
-
-    if (
-      normalizedRequest.includes("summar") ||
-      normalizedRequest.includes("overview")
-    ) {
-      draft = `Ticket summary:
-
-• Reference: ${ticketNumber}
-• Customer: ${customerName}
-• Issue: ${ticketSubject}
-• Status: ${status}
-• Priority: ${priority}
-• Assigned to: ${assignedAgent}
-• Department: ${assignedDepartment}${
-        ticketDescription
-          ? `\n• Details: ${ticketDescription}`
-          : ""
+      if (!result?.draft) {
+        throw new Error(
+          "Gemini returned an empty note.",
+        );
       }
 
-Next action:
-Review the case with ${assignedDepartment} and record the confirmed outcome.`;
-    } else if (
-      normalizedRequest.includes("payment") ||
-      normalizedRequest.includes("transaction") ||
-      normalizedRequest.includes("refund") ||
-      normalizedRequest.includes("reversal")
-    ) {
-      draft = `Customer reported a payment-related issue under ${ticketNumber}.
+      setEditorText(result.draft);
+    } catch (draftError) {
+      console.error(
+        "Gemini note generation failed:",
+        draftError,
+      );
 
-The transaction details require verification with ${assignedDepartment}. The case remains under review, and no final outcome has been confirmed yet.
-
-Next action:
-Verify the transaction status, reconciliation record and reference details before updating the customer.`;
-    } else if (
-      normalizedRequest.includes("escalat") ||
-      normalizedRequest.includes("urgent") ||
-      normalizedRequest.includes("priority")
-    ) {
-      draft = `${ticketNumber} has been escalated to ${assignedDepartment} due to the pending ${ticketSubject.toLowerCase()}.
-
-Current status: ${status}
-Priority: ${priority}
-
-Next action:
-The assigned team should review the case on priority and provide a confirmed update for the customer.`;
-    } else if (
-      normalizedRequest.includes("follow") ||
-      normalizedRequest.includes("pending") ||
-      normalizedRequest.includes("waiting")
-    ) {
-      draft = `Follow-up note for ${ticketNumber}:
-
-The case is still pending with ${assignedDepartment}. A confirmed resolution has not yet been received.
-
-Next action:
-Follow up with the assigned team and update the ticket once a response is received.`;
-    } else if (
-      normalizedRequest.includes("resolved") ||
-      normalizedRequest.includes("fixed") ||
-      normalizedRequest.includes("close")
-    ) {
-      draft = `Resolution note for ${ticketNumber}:
-
-The reported issue, "${ticketSubject}", has been reviewed and marked as resolved.
-
-Action completed:
-The required review or correction has been completed by ${assignedDepartment}.
-
-Next action:
-Confirm the outcome with the customer before closing the ticket permanently.`;
-    } else if (
-      normalizedRequest.includes("detail") ||
-      normalizedRequest.includes("information") ||
-      normalizedRequest.includes("document") ||
-      normalizedRequest.includes("screenshot")
-    ) {
-      draft = `Additional information is required to continue the investigation for ${ticketNumber}.
-
-Required details:
-• Transaction or reference ID
-• Date and approximate time
-• Amount, where applicable
-• Screenshot or exact error message
-• Any supporting document
-
-Next action:
-Request the missing details from the customer and resume the investigation after receipt.`;
-    } else if (
-      normalizedRequest.includes("short") ||
-      normalizedRequest.includes("concise")
-    ) {
-      draft = `${ticketNumber}: ${ticketSubject} is under review with ${assignedDepartment}. Follow-up is pending, and the customer should be updated after confirmation.`;
-    } else if (
-      normalizedRequest.includes("next action") ||
-      normalizedRequest.includes("next step")
-    ) {
-      draft = existingText
-        ? `${existingText}
-
-Next action:
-Follow up with ${assignedDepartment}, confirm the current status and update the customer.`
-        : `Next action for ${ticketNumber}:
-
-Follow up with ${assignedDepartment}, confirm the current status and update the customer once verified.`;
-    } else if (
-      normalizedRequest.includes("improve") ||
-      normalizedRequest.includes("professional") ||
-      normalizedRequest.includes("rewrite")
-    ) {
-      if (existingText) {
-        draft = `Internal update for ${ticketNumber}:
-
-${existingText}
-
-Next action:
-Review any pending requirement with ${assignedDepartment} and record the confirmed outcome.`;
-      } else {
-        draft = `Internal update for ${ticketNumber}:
-
-The reported issue is currently under review. The available ticket information has been checked, and the matter is awaiting confirmation from ${assignedDepartment}.
-
-Next action:
-Follow up with the relevant team and update the customer after verification.`;
-      }
-    } else if (request) {
-      draft = `Internal note for ${ticketNumber}:
-
-${request}
-
-Ticket issue:
-${ticketSubject}
-
-Current status:
-${status}
-
-Next action:
-Follow up with ${assignedDepartment} and record the confirmed outcome.`;
+      setError(
+        draftError?.message ||
+          "Gemini could not create the note.",
+      );
+    } finally {
+      setIsGeneratingDraft(false);
     }
-
-    setEditorText(draft);
   };
 
   const handleSubmit = async () => {
@@ -776,9 +669,15 @@ Follow up with ${assignedDepartment} and record the confirmed outcome.`;
                   type="button"
                   className="crm-help-writer-create"
                   onClick={handleCreateNoteDraft}
-                  disabled={isSaving}
+                  disabled={
+                    isSaving ||
+                    isGeneratingDraft ||
+                    !helpWriterInstruction.trim()
+                  }
                 >
-                  Create note
+                  {isGeneratingDraft
+                    ? "Generating..."
+                    : "Create note"}
                 </button>
               </div>
             </section>

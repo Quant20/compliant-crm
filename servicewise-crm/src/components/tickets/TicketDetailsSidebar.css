@@ -398,3 +398,87 @@
   color: #94a3b8;
   cursor: not-allowed;
 }
+
+/* =========================================================
+   TICKET DETAILS SIDEBAR — FONT SIZE IMPROVEMENT
+========================================================= */
+
+.ticket-details-sidebar {
+  font-size: 13px;
+}
+
+/* Small uppercase title */
+.ticket-sidebar-header span {
+  font-size: 11px !important;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+}
+
+/* Main Properties heading */
+.ticket-sidebar-header h2 {
+  font-size: 18px !important;
+  line-height: 1.25;
+}
+
+/* Email / WhatsApp / Phone badge */
+.ticket-sidebar-channel {
+  font-size: 12px !important;
+  font-weight: 700;
+}
+
+/* Section headings such as Complaint Details */
+.ticket-sidebar-section-title {
+  font-size: 14px !important;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+/* Field labels */
+.ticket-sidebar-row > span,
+.ticket-sidebar-field label {
+  font-size: 12px !important;
+  line-height: 1.4;
+}
+
+/* Field values */
+.ticket-sidebar-row > strong {
+  font-size: 12px !important;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+/* Dropdown values */
+.ticket-sidebar-field select {
+  font-size: 12px !important;
+  line-height: 1.4;
+}
+
+/* Customer 360 button */
+.ticket-sidebar-customer-profile-button {
+  font-size: 12px !important;
+  font-weight: 700;
+}
+
+/* SLA summary */
+.ticket-sidebar-sla-status span,
+.ticket-sidebar-sla-status strong {
+  font-size: 12px !important;
+  line-height: 1.4;
+}
+
+@media (max-width: 1200px) {
+  .ticket-sidebar-header h2 {
+    font-size: 17px !important;
+  }
+
+  .ticket-sidebar-section-title {
+    font-size: 13px !important;
+  }
+
+  .ticket-sidebar-row > span,
+  .ticket-sidebar-row > strong,
+  .ticket-sidebar-field label,
+  .ticket-sidebar-field select {
+    font-size: 11.5px !important;
+  }
+}

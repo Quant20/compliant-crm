@@ -1,0 +1,768 @@
+/* =========================================================
+   INTERNAL NOTE COMPOSER
+   Uses the EmailReplyModal structure with note-specific UI.
+========================================================= */
+
+.crm-note-email-composer {
+  width: min(840px, calc(100vw - 40px));
+  height: min(700px, calc(100vh - 40px));
+  max-height: calc(100vh - 40px);
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background: #ffffff;
+  border: 1px solid #cbd8e3;
+  border-radius: 14px;
+
+  box-shadow:
+    0 24px 70px rgba(15, 23, 42, 0.24),
+    0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+/* =========================================================
+   EXPANDED MODE
+========================================================= */
+
+.crm-note-email-composer-expanded {
+  width: calc(100vw - 24px);
+  height: calc(100vh - 24px);
+  max-height: none;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.crm-note-email-composer .crm-email-header {
+  flex: 0 0 auto;
+
+  align-items: center;
+
+  padding: 16px 20px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #12334c 0%,
+      #17445d 100%
+    );
+
+  border-radius: 13px 13px 0 0;
+}
+
+.crm-note-email-composer .crm-email-header h2 {
+  margin: 0 0 4px;
+
+  color: #ffffff;
+
+  font-size: 19px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.crm-note-email-composer .crm-email-header p {
+  max-width: 620px;
+  margin: 0;
+
+  overflow: hidden;
+
+  color: #d6e3eb;
+
+  font-size: 12px;
+  line-height: 1.4;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crm-note-header-actions {
+  display: flex;
+  align-items: center;
+
+  flex-shrink: 0;
+
+  gap: 4px;
+}
+
+.crm-note-email-composer .crm-email-close {
+  width: 34px;
+  height: 34px;
+
+  color: #ffffff;
+
+  border-radius: 8px;
+}
+
+.crm-note-email-composer
+  .crm-email-close:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.crm-note-email-composer
+  .crm-email-close:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   PRIVATE NOTE TAB
+========================================================= */
+
+.crm-note-email-composer .crm-email-mode-tabs {
+  flex: 0 0 auto;
+
+  min-height: 49px;
+  padding: 8px 18px 0;
+
+  background: #ffffff;
+}
+
+.crm-note-email-composer
+  .crm-email-mode-tabs button {
+  padding: 10px 12px 11px;
+
+  color: #0f766e;
+
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.crm-note-email-composer
+  .crm-email-mode-tabs button.active {
+  border-bottom-color: #0f9488;
+}
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+.crm-note-email-composer .crm-email-error {
+  flex: 0 0 auto;
+
+  margin: 12px 18px 0;
+}
+
+/* =========================================================
+   TICKET SUBJECT ROW
+========================================================= */
+
+.crm-note-for-row {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+  min-height: 50px;
+  padding: 9px 18px;
+
+  color: #64748b;
+  background: #fbfcfd;
+
+  border-bottom: 1px solid #dfe7ee;
+
+  font-size: 12px;
+}
+
+.crm-note-for-row > span {
+  flex-shrink: 0;
+
+  color: #64748b;
+
+  font-weight: 650;
+}
+
+.crm-note-for-row strong {
+  display: inline-flex;
+  align-items: center;
+
+  max-width: calc(100% - 45px);
+  min-height: 30px;
+  padding: 5px 11px;
+
+  overflow: hidden;
+
+  color: #243b53;
+  background: #ffffff;
+
+  border: 1px solid #cad7e2;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   EDITOR SHELL
+========================================================= */
+
+.crm-note-email-composer
+  .crm-note-editor-shell {
+  flex: 1 1 auto;
+
+  display: flex;
+  flex-direction: column;
+
+  min-height: 0;
+
+  overflow: hidden;
+
+  background: #ffffff;
+}
+
+/* =========================================================
+   EDITOR
+========================================================= */
+
+.crm-note-email-composer
+  .crm-note-editor-area {
+  flex: 1 1 auto;
+
+  min-height: 180px;
+  padding: 18px 20px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  color: #26384a;
+  background: #ffffff;
+
+  border: 0;
+  outline: none;
+
+  font-size: 14px;
+  line-height: 1.7;
+
+  scrollbar-color: #b9c7d3 transparent;
+  scrollbar-width: thin;
+}
+
+.crm-note-email-composer
+  .crm-note-editor-area:focus {
+  box-shadow:
+    inset 0 0 0 2px rgba(15, 148, 136, 0.8);
+
+  background: #fdfffe;
+}
+
+.crm-note-email-composer
+  .crm-note-editor-area:empty::before {
+  color: #94a3b8;
+
+  font-size: 13px;
+}
+
+.crm-note-email-composer
+  .crm-note-editor-area::-webkit-scrollbar {
+  width: 8px;
+}
+
+.crm-note-email-composer
+  .crm-note-editor-area::-webkit-scrollbar-thumb {
+  background: #c7d2dc;
+
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+}
+
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
+.crm-note-email-composer .crm-email-toolbar {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 4px;
+  min-height: 50px;
+  padding: 8px 14px;
+
+  background: #f8fafc;
+
+  border-top: 1px solid #dfe7ee;
+  border-bottom: 1px solid #dfe7ee;
+}
+
+.crm-note-email-composer
+  .crm-email-toolbar > button:not(
+    .crm-email-help-write-button
+  ) {
+  width: 32px;
+  height: 32px;
+
+  color: #475569;
+  background: transparent;
+
+  border: 1px solid transparent;
+  border-radius: 7px;
+}
+
+.crm-note-email-composer
+  .crm-email-toolbar
+  > button:not(
+    .crm-email-help-write-button
+  ):hover:not(:disabled) {
+  color: #0f766e;
+  background: #eaf7f4;
+
+  border-color: #c9e8e1;
+}
+
+.crm-note-email-composer
+  .crm-email-toolbar
+  > button:disabled {
+  opacity: 0.35;
+}
+
+/* =========================================================
+   HELP ME WRITE BUTTON
+========================================================= */
+
+.crm-note-email-composer
+  .crm-email-help-write-button {
+  width: auto !important;
+  min-width: 124px !important;
+  height: 34px !important;
+
+  margin-right: 7px;
+  padding: 7px 12px !important;
+
+  color: #087f73 !important;
+  background:
+    linear-gradient(
+      135deg,
+      #e9faf6 0%,
+      #dcf6f0 100%
+    ) !important;
+
+  border: 1px solid #72c7b9 !important;
+  border-radius: 8px !important;
+
+  box-shadow:
+    0 1px 2px rgba(15, 118, 110, 0.08);
+
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+
+.crm-note-email-composer
+  .crm-email-help-write-button:hover:not(:disabled) {
+  color: #066a61 !important;
+  background: #d3f3ed !important;
+
+  border-color: #33a894 !important;
+
+  transform: translateY(-1px);
+}
+
+.crm-note-email-composer
+  .crm-email-help-write-button span {
+  font-size: 14px;
+}
+
+/* =========================================================
+   HELP WRITER PANEL
+========================================================= */
+
+.crm-note-email-composer
+  .crm-email-help-writer-panel {
+  flex: 0 0 auto;
+
+  max-height: 310px;
+  padding: 14px 16px;
+
+  overflow-y: auto;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f5fffc 0%,
+      #f9fdfc 100%
+    );
+
+  border-top: 0;
+  border-bottom: 1px solid #cfe5e0;
+}
+
+.crm-note-email-composer
+  .crm-email-help-writer-heading {
+  margin-bottom: 11px;
+}
+
+.crm-note-email-composer
+  .crm-email-help-writer-heading strong {
+  font-size: 13px;
+}
+
+.crm-note-email-composer
+  .crm-email-help-writer-heading span {
+  font-size: 11px;
+}
+
+.crm-note-email-composer
+  .crm-email-help-writer-panel textarea {
+  min-height: 90px;
+  max-height: 145px;
+
+  padding: 10px 12px;
+
+  font-size: 12px;
+}
+
+.crm-note-email-composer
+  .crm-email-help-writer-examples {
+  gap: 7px;
+}
+
+.crm-note-email-composer
+  .crm-email-help-writer-examples button {
+  padding: 6px 10px !important;
+
+  border-radius: 999px !important;
+}
+
+.crm-note-email-composer
+  .crm-email-help-writer-actions {
+  margin-top: 12px;
+}
+
+/* =========================================================
+   ASSOCIATED RECORDS
+========================================================= */
+
+.crm-note-associated-row {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 8px;
+  min-height: 50px;
+  padding: 9px 18px;
+
+  color: #64748b;
+  background: #f8fafc;
+
+  border-top: 0;
+  border-bottom: 1px solid #dfe7ee;
+
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.crm-note-associated-row strong {
+  display: inline-flex;
+  align-items: center;
+
+  max-width: 270px;
+  min-height: 29px;
+  padding: 4px 10px;
+
+  overflow: hidden;
+
+  color: #243b53;
+  background: #ffffff;
+
+  border: 1px solid #cad7e2;
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.crm-note-email-composer .crm-email-footer {
+  flex: 0 0 auto;
+
+  min-height: 64px;
+  padding: 11px 18px;
+
+  background: #ffffff;
+
+  border-top: 0;
+}
+
+.crm-note-email-composer
+  .crm-email-footer > span {
+  color: #64748b;
+
+  font-size: 11px;
+}
+
+.crm-note-email-composer
+  .crm-email-cancel,
+.crm-note-email-composer
+  .crm-email-send {
+  min-width: 100px;
+  min-height: 39px;
+
+  padding: 8px 15px;
+
+  border-radius: 8px;
+
+  font-size: 12px;
+}
+
+.crm-note-email-composer
+  .crm-email-cancel:hover:not(:disabled) {
+  color: #1f2937;
+  background: #f8fafc;
+
+  border-color: #94a3b8;
+}
+
+.crm-note-email-composer
+  .crm-email-send {
+  background:
+    linear-gradient(
+      135deg,
+      #0f9488 0%,
+      #0f766e 100%
+    );
+
+  border-color: #0f766e;
+
+  box-shadow:
+    0 4px 12px rgba(15, 118, 110, 0.2);
+}
+
+.crm-note-email-composer
+  .crm-email-send:hover:not(:disabled) {
+  background:
+    linear-gradient(
+      135deg,
+      #0d8379 0%,
+      #0b625c 100%
+    );
+
+  transform: translateY(-1px);
+}
+
+.crm-note-email-composer
+  .crm-email-send:disabled,
+.crm-note-email-composer
+  .crm-email-cancel:disabled {
+  opacity: 0.5;
+
+  box-shadow: none;
+
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* =========================================================
+   SAVED NOTE CONTENT
+========================================================= */
+
+.crm-note-content {
+  color: #334155;
+
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.crm-note-content p {
+  margin: 0 0 8px;
+}
+
+.crm-note-content p:last-child {
+  margin-bottom: 0;
+}
+
+.crm-note-content ul,
+.crm-note-content ol {
+  margin: 8px 0;
+  padding-left: 22px;
+}
+
+/* =========================================================
+   MEDIUM SCREENS
+========================================================= */
+
+@media (max-width: 850px) {
+  .crm-email-backdrop {
+    padding: 12px;
+  }
+
+  .crm-note-email-composer {
+    width: 100%;
+    height: calc(100vh - 24px);
+    max-height: calc(100vh - 24px);
+  }
+
+  .crm-note-email-composer-expanded {
+    width: 100%;
+    height: calc(100vh - 24px);
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 650px) {
+  .crm-email-backdrop {
+    align-items: stretch;
+
+    padding: 0;
+  }
+
+  .crm-note-email-composer,
+  .crm-note-email-composer-expanded {
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+
+    border: 0;
+    border-radius: 0;
+  }
+
+  .crm-note-email-composer .crm-email-header {
+    padding: 14px 15px;
+
+    border-radius: 0;
+  }
+
+  .crm-note-email-composer .crm-email-header h2 {
+    font-size: 17px;
+  }
+
+  .crm-note-email-composer
+    .crm-email-mode-tabs {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .crm-note-for-row {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 6px;
+    padding: 9px 12px;
+  }
+
+  .crm-note-for-row strong {
+    max-width: 100%;
+  }
+
+  .crm-note-email-composer
+    .crm-note-editor-area {
+    min-height: 145px;
+    padding: 15px;
+  }
+
+  .crm-note-email-composer
+    .crm-email-toolbar {
+    flex-wrap: nowrap;
+
+    padding: 8px 10px;
+
+    overflow-x: auto;
+  }
+
+  .crm-note-email-composer
+    .crm-email-help-write-button {
+    flex-shrink: 0;
+
+    margin-right: 4px;
+  }
+
+  .crm-note-associated-row {
+    padding: 8px 12px;
+  }
+
+  .crm-note-associated-row strong {
+    max-width: 220px;
+  }
+
+  .crm-note-email-composer
+    .crm-email-footer {
+    align-items: stretch;
+    flex-direction: row;
+
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .crm-note-email-composer
+    .crm-email-footer > span {
+    display: none;
+  }
+
+  .crm-note-email-composer
+    .crm-email-cancel,
+  .crm-note-email-composer
+    .crm-email-send {
+    flex: 1;
+
+    width: auto;
+    min-width: 0;
+  }
+}
+
+/* =========================================================
+   SHORT VIEWPORTS
+========================================================= */
+
+@media (max-height: 620px) and (min-width: 651px) {
+  .crm-email-backdrop {
+    padding: 10px;
+  }
+
+  .crm-note-email-composer,
+  .crm-note-email-composer-expanded {
+    height: calc(100vh - 20px);
+    max-height: calc(100vh - 20px);
+  }
+
+  .crm-note-email-composer .crm-email-header {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .crm-note-email-composer
+    .crm-email-mode-tabs {
+    min-height: 43px;
+    padding-top: 4px;
+  }
+
+  .crm-note-for-row {
+    min-height: 44px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .crm-note-email-composer
+    .crm-note-editor-area {
+    min-height: 120px;
+  }
+
+  .crm-note-associated-row {
+    min-height: 44px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .crm-note-email-composer
+    .crm-email-footer {
+    min-height: 54px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+}

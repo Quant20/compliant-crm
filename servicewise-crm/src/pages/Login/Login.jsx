@@ -6,7 +6,6 @@ import {
 } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
-import { DEMO_ACCOUNTS } from "../../services/authService";
 import "./Login.css";
 
 export default function Login() {
@@ -60,13 +59,6 @@ export default function Login() {
     }
   };
 
-  const useDemoAccount = (account) => {
-    setEmail(account.email);
-    setPassword(account.password);
-    setLocalError("");
-    setMessage(`${account.label} credentials added.`);
-  };
-
   const handleForgotPassword = () => {
     setLocalError("");
     setMessage(
@@ -83,7 +75,7 @@ export default function Login() {
           </div>
 
           <p className="login-eyebrow">SERVICEWISE CRM</p>
-          <h1>Manage customer complaints from one secure workspace.</h1>
+          <h1>Manage complaints from one secure workspace.</h1>
           <p className="login-brand-description">
             Track tickets, customer communication, ownership, SLA progress,
             internal notes, and follow-up activity.
@@ -199,29 +191,6 @@ export default function Login() {
               {loading ? "Signing in…" : "Sign in"}
             </button>
           </form>
-
-          <div className="login-divider">
-            <span>Demo accounts</span>
-          </div>
-
-          <div className="login-demo-buttons">
-            {DEMO_ACCOUNTS.map((account) => (
-              <button
-                key={account.email}
-                type="button"
-                onClick={() => useDemoAccount(account)}
-                disabled={loading}
-              >
-                <strong>{account.label}</strong>
-                <span>{account.email}</span>
-              </button>
-            ))}
-          </div>
-
-          <p className="login-demo-note">
-            Administrator password: <strong>admin123</strong><br />
-            Support Agent password: <strong>agent123</strong>
-          </p>
         </div>
       </section>
     </main>

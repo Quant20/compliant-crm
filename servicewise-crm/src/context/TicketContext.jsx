@@ -17,6 +17,9 @@ import {
 } from "../services/supabaseTicketService";
 import { isSupabaseConfigured } from "../services/supabaseClient";
 
+import {
+  createServerTicket,
+} from "../services/ticketApiService";
 const TicketContext = createContext(undefined);
 
 const TICKETS_STORAGE_KEY = "servicewise_recovered_tickets";
@@ -334,35 +337,79 @@ export function TicketProvider({ children }) {
 
     let createdTicket;
 
-    if (isSupabaseConfigured) {
-      try {
-        createdTicket = normalizeTicket(
-          await createManualSupabaseTicket(ticketData),
-        );
-        setDataSource("supabase");
-      } catch (createError) {
-        console.error("Supabase ticket creation failed:", createError);
-        createdTicket = createLocalTicket(ticketData);
+    try {
+      createdTicket = normalizeTicket(
+        await createServerTicket(ticketData),
+      );
+
+      setDataSource("server");
+    } catch (serverError) {
+      console.error(
+        "Server ticket creation failed:",
+        serverError,
+      );
+
+      if (isSupabaseConfigured) {
+        try {
+          createdTicket = normalizeTicket(
+            await createManualSupabaseTicket(
+              ticketData,
+            ),
+          );
+
+          setDataSource("supabase");
+
+          setError(
+            `The Node server could not create the ticket, so it was saved in Supabase without server-side automatic assignment. ${
+              serverError?.message || ""
+            }`.trim(),
+          );
+        } catch (supabaseError) {
+          console.error(
+            "Supabase ticket creation failed:",
+            supabaseError,
+          );
+
+          createdTicket =
+            createLocalTicket(ticketData);
+
+          setDataSource("local");
+
+          setError(
+            "The ticket was saved locally because both the Node server and Supabase were unavailable.",
+          );
+        }
+      } else {
+        createdTicket =
+          createLocalTicket(ticketData);
+
         setDataSource("local");
+
         setError(
-          `Ticket was saved locally because Supabase creation failed. ${
-            createError?.message || ""
+          `The ticket was saved locally because the Node server could not be reached. Automatic assignment was not applied. ${
+            serverError?.message || ""
           }`.trim(),
         );
       }
-    } else {
-      createdTicket = createLocalTicket(ticketData);
-      setDataSource("local");
     }
 
     setTickets((currentTickets) => {
-      const withoutDuplicate = currentTickets.filter(
-        (ticket) => String(ticket.id) !== String(createdTicket.id),
-      );
-      return sortTicketsNewestFirst([
-        createdTicket,
-        ...withoutDuplicate,
-      ]);
+      const withoutDuplicate =
+        currentTickets.filter(
+          (ticket) =>
+            String(ticket.id) !==
+            String(createdTicket.id),
+        );
+
+      const nextTickets =
+        sortTicketsNewestFirst([
+          createdTicket,
+          ...withoutDuplicate,
+        ]);
+
+      writeStoredTickets(nextTickets);
+
+      return nextTickets;
     });
 
     return createdTicket;

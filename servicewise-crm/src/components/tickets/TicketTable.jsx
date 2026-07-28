@@ -204,7 +204,7 @@ export default function TicketTable({
             </th>
 
             <th className="crm-col-owner">
-              Owner
+              Assigned Agent
             </th>
 
             <th className="crm-col-created">

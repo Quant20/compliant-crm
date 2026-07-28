@@ -1,18 +1,2 @@
-export function requireApiKey(request, response, next) {
-  const configuredKey = process.env.API_KEY;
-
-  if (!configuredKey) {
-    return next();
-  }
-
-  const providedKey = request.header("x-api-key");
-
-  if (providedKey !== configuredKey) {
-    return response.status(401).json({
-      success: false,
-      message: "Invalid or missing API key.",
-    });
-  }
-
-  return next();
-}
+export function requireApiKey(req, res, next) { const key = process.env.API_KEY; if (!key) { console.warn("[SECURITY] API_KEY not set."); return next(); } const provided = req.header("x-api-key"); if (!provided) return res.status(401).json({ success: false, message: "API key required." }); if (provided !== key) return res.status(403).json({ success: false, message: "Invalid API key." }); return next(); }
+export function requireSession(req, res, next) { const h = req.header("Authorization"); if (!h || !h.startsWith("Bearer ")) return res.status(401).json({ success: false, message: "Auth required." }); const t = h.slice(7).trim(); if (!t) return res.status(401).json({ success: false, message: "Invalid token." }); req.sessionUser = { identifier: t }; return next(); }
