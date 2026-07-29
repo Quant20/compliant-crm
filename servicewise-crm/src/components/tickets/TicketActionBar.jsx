@@ -17,6 +17,10 @@ import {
   FaTimes,
 } from "react-icons/fa";
 
+import {
+  scheduleGoogleMeeting,
+} from "../../services/integrationService";
+
 import "./TicketActionBar.css";
 
 const INITIAL_CALL = {
@@ -376,50 +380,70 @@ export default function TicketActionBar({
   };
 
   const handleScheduleMeeting = async (event) => {
-    event.preventDefault();
+  event.preventDefault();
+  setError("");
 
-    if (
-      !meetingForm.title.trim() ||
-      !meetingForm.date ||
-      !meetingForm.startTime ||
-      !meetingForm.endTime
-    ) {
-      setError(
-        "Meeting title, date, start time and end time are required.",
-      );
-
-      return;
-    }
-
-    const startDate = new Date(
-      `${meetingForm.date}T${meetingForm.startTime}`,
+  if (
+    !meetingForm.title.trim() ||
+    !meetingForm.date ||
+    !meetingForm.startTime ||
+    !meetingForm.endTime
+  ) {
+    setError(
+      "Meeting title, date, start time and end time are required.",
     );
+    return;
+  }
 
-    const endDate = new Date(
-      `${meetingForm.date}T${meetingForm.endTime}`,
+  const startDate = new Date(
+    `${meetingForm.date}T${meetingForm.startTime}`,
+  );
+
+  const endDate = new Date(
+    `${meetingForm.date}T${meetingForm.endTime}`,
+  );
+
+  if (
+    Number.isNaN(startDate.getTime()) ||
+    Number.isNaN(endDate.getTime())
+  ) {
+    setError(
+      "Please enter a valid meeting date and time.",
     );
+    return;
+  }
 
-    if (
-      Number.isNaN(startDate.getTime()) ||
-      Number.isNaN(endDate.getTime())
-    ) {
-      setError(
-        "Please enter a valid meeting date and time.",
-      );
+  if (endDate <= startDate) {
+    setError(
+      "End time must be later than start time.",
+    );
+    return;
+  }
 
-      return;
-    }
-
-    if (endDate <= startDate) {
-      setError(
-        "End time must be later than start time.",
-      );
-
-      return;
-    }
+  try {
+    const calendarEvent =
+      await scheduleGoogleMeeting({
+        title: meetingForm.title.trim(),
+        date: meetingForm.date,
+        startTime: meetingForm.startTime,
+        endTime: meetingForm.endTime,
+        attendees:
+          meetingForm.attendeeEmail.trim()
+            ? [
+                meetingForm.attendeeEmail.trim(),
+              ]
+            : [],
+        description:
+          meetingForm.description.trim(),
+        ticketNumber,
+        timeZone: "Asia/Karachi",
+        createGoogleMeet: true,
+      });
 
     const meeting = {
-      id: Date.now(),
+      id:
+        calendarEvent?.id ||
+        `meeting-${Date.now()}`,
       ticketId: ticket?.id,
       ticketNumber,
       title: meetingForm.title.trim(),
@@ -427,11 +451,29 @@ export default function TicketActionBar({
       startTime: meetingForm.startTime,
       endTime: meetingForm.endTime,
       attendees:
+        calendarEvent?.attendees || [],
+      attendeeEmail:
         meetingForm.attendeeEmail.trim(),
       description:
         meetingForm.description.trim(),
       createdBy: currentUserName,
-      createdAt: new Date().toISOString(),
+      createdAt:
+        calendarEvent?.createdAt ||
+        new Date().toISOString(),
+
+      googleEventId:
+        calendarEvent?.id || "",
+      googleCalendarLink:
+        calendarEvent?.htmlLink || "",
+      googleMeetLink:
+        calendarEvent?.meetLink || "",
+      calendarStatus:
+        calendarEvent?.status ||
+        "confirmed",
+      calendarStart:
+        calendarEvent?.start || null,
+      calendarEnd:
+        calendarEvent?.end || null,
     };
 
     try {
@@ -450,37 +492,30 @@ export default function TicketActionBar({
       );
     } catch (storageError) {
       console.error(
-        "Unable to save meeting:",
+        "Google Calendar meeting was created, but the CRM copy could not be saved:",
         storageError,
       );
-
-      setError(
-        "The meeting could not be saved.",
-      );
-
-      return;
     }
 
-    try {
-      if (
-        typeof onMeetingSaved === "function"
-      ) {
-        await onMeetingSaved(meeting);
-      }
-
-      closeModal();
-    } catch (saveError) {
-      console.error(
-        "Unable to save meeting activity:",
-        saveError,
-      );
-
-      setError(
-        saveError?.message ||
-          "The meeting was opened, but its activity could not be saved.",
-      );
+    if (
+      typeof onMeetingSaved === "function"
+    ) {
+      await onMeetingSaved(meeting);
     }
-  };
+
+    closeModal();
+  } catch (calendarError) {
+    console.error(
+      "Unable to schedule Google Calendar meeting:",
+      calendarError,
+    );
+
+    setError(
+      calendarError?.message ||
+        "The meeting could not be added to Google Calendar.",
+    );
+  }
+};
 
   const handleCloseTicket = () => {
     if (

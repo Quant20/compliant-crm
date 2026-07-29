@@ -72,37 +72,10 @@ export async function loginHandler(
       });
     }
 
-    let signedInUser = user;
-
-    const normalizedRole = String(
-      user.role || "",
-    )
-      .trim()
-      .toLowerCase();
-
-    if (
-      normalizedRole === "support agent" ||
-      normalizedRole === "agent"
-    ) {
-      signedInUser =
-        await adminUpdateUser(
-          user.email,
-          {
-            status: "Available",
-            lastSeenAt:
-              new Date().toISOString(),
-            last_seen_at:
-              new Date().toISOString(),
-          },
-        );
-    }
-
     return res.json({
       success: true,
-      user: signedInUser,
-      token: generateToken(
-        signedInUser,
-      ),
+      user,
+      token: generateToken(user),
       message: "Login successful.",
     });
   } catch (error) {
@@ -286,56 +259,6 @@ export async function updateUserHandler(
     return res.status(status).json({
       success: false,
       message: error.message,
-    });
-  }
-}
-
-
-export async function logoutHandler(
-  req,
-  res,
-) {
-  try {
-    const {
-      email,
-    } = req.body || {};
-
-    if (!email?.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: "Email required.",
-      });
-    }
-
-    const updatedUser =
-      await adminUpdateUser(
-        email.trim(),
-        {
-          status: "Offline",
-          lastSeenAt:
-            new Date().toISOString(),
-          last_seen_at:
-            new Date().toISOString(),
-        },
-      );
-
-    return res.json({
-      success: true,
-      user: updatedUser,
-      message:
-        "Agent marked offline.",
-    });
-  } catch (error) {
-    console.error(
-      "Logout status error:",
-      error,
-    );
-
-    return res.status(400).json({
-      success: false,
-      message:
-        error.message ||
-        "Unable to update logout status.",
     });
   }
 }

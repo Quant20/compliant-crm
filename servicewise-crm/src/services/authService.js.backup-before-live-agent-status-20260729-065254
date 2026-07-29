@@ -362,79 +362,6 @@ export async function changePassword({ email, currentPassword, newPassword }) {
   }
 }
 
-function updateLocalAgentPresence(
-  email,
-  status,
-) {
-  if (
-    typeof window === "undefined" ||
-    !String(email || "").trim()
-  ) {
-    return;
-  }
-
-  try {
-    const storageKey =
-      "servicewise_agents";
-
-    const stored =
-      window.localStorage.getItem(
-        storageKey,
-      );
-
-    if (!stored) {
-      return;
-    }
-
-    const agents =
-      JSON.parse(stored);
-
-    if (!Array.isArray(agents)) {
-      return;
-    }
-
-    const now =
-      new Date().toISOString();
-
-    const updatedAgents =
-      agents.map((agent) =>
-        normalize(agent.email) ===
-        normalize(email)
-          ? {
-              ...agent,
-              status,
-              lastSeenAt: now,
-              last_seen_at: now,
-            }
-          : agent,
-      );
-
-    window.localStorage.setItem(
-      storageKey,
-      JSON.stringify(
-        updatedAgents,
-      ),
-    );
-
-    window.dispatchEvent(
-      new CustomEvent(
-        "servicewise-agent-status-change",
-        {
-          detail: {
-            email,
-            status,
-          },
-        },
-      ),
-    );
-  } catch (error) {
-    console.error(
-      "Unable to update local agent presence:",
-      error,
-    );
-  }
-}
-
 export async function login({
   email,
   password,
@@ -486,11 +413,6 @@ export async function login({
   // ── Try server-side authentication (PRIMARY) ──
   const serverSession = await loginWithServer({ email, password, remember });
   if (serverSession) {
-    updateLocalAgentPresence(
-      serverSession?.user?.email,
-      "Available",
-    );
-
     return serverSession;
   }
 
@@ -499,41 +421,7 @@ export async function login({
 }
 
 export async function logout() {
-  const storedSession =
-    getStoredSession();
-
-  const userEmail =
-    storedSession?.user?.email || "";
-
   try {
-    if (userEmail) {
-      try {
-        await fetch(
-          `${API_BASE}/api/auth/logout`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-            body: JSON.stringify({
-              email: userEmail,
-            }),
-          },
-        );
-      } catch (presenceError) {
-        console.error(
-          "Unable to update server logout status:",
-          presenceError,
-        );
-      }
-
-      updateLocalAgentPresence(
-        userEmail,
-        "Offline",
-      );
-    }
-
     if (isSupabaseConfigured) {
       await supabase.auth.signOut();
     }

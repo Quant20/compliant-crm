@@ -1,11 +1,5 @@
 import users from "../data/users";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "";
-
-const API_KEY =
-  "sw_crm_2025_dev_key_change_in_production";
-
 const AGENTS_STORAGE_KEY =
   "servicewise_agents";
 
@@ -346,112 +340,24 @@ export function updateAgent(
   return updatedAgent;
 }
 
-async function saveAgentStatusToServer(
-  agent,
-  status,
-) {
-  const email =
-    String(agent?.email || "").trim();
-
-  if (!email) {
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/auth/users/${encodeURIComponent(
-        email,
-      )}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type":
-            "application/json",
-          "x-api-key": API_KEY,
-        },
-        body: JSON.stringify({
-          status,
-          lastSeenAt:
-            new Date().toISOString(),
-          last_seen_at:
-            new Date().toISOString(),
-        }),
-      },
-    );
-
-    const data = await response
-      .json()
-      .catch(() => ({}));
-
-    if (
-      !response.ok ||
-      !data?.success
-    ) {
-      throw new Error(
-        data?.message ||
-        "Unable to save agent status.",
-      );
-    }
-  } catch (error) {
-    console.error(
-      "Agent status server sync failed:",
-      error,
-    );
-  }
-}
-
 export function updateAgentStatus(
   agentId,
   status,
 ) {
   const agents = getAgents();
 
-  const selectedAgent =
-    agents.find(
-      (agent) =>
-        String(agent.id) ===
-        String(agentId),
-    );
-
-  const now =
-    new Date().toISOString();
-
-  const updatedAgents =
-    agents.map((agent) =>
+  const updatedAgents = agents.map(
+    (agent) =>
       String(agent.id) ===
       String(agentId)
         ? {
             ...agent,
             status,
-            lastSeenAt: now,
-            last_seen_at: now,
           }
         : agent,
-    );
+  );
 
   saveAgents(updatedAgents);
-
-  if (selectedAgent) {
-    void saveAgentStatusToServer(
-      selectedAgent,
-      status,
-    );
-  }
-
-  window.dispatchEvent(
-    new CustomEvent(
-      "servicewise-agent-status-change",
-      {
-        detail: {
-          agentId,
-          email:
-            selectedAgent?.email ||
-            "",
-          status,
-        },
-      },
-    ),
-  );
 
   return updatedAgents;
 }

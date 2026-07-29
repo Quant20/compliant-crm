@@ -239,15 +239,68 @@ export default function TicketDetails() {
   }, [initialLoadRequested, loadTickets]);
 
   useEffect(() => {
-    const stopWatcher =
-      startTicketReminderWatcher((task) => {
-        showSuccess(
-          `Task reminder: ${task.title}`,
+  const requestNotificationPermission = async () => {
+    if (
+      "Notification" in window &&
+      Notification.permission === "default"
+    ) {
+      try {
+        await Notification.requestPermission();
+      } catch (permissionError) {
+        console.error(
+          "Notification permission could not be requested:",
+          permissionError,
         );
-      });
+      }
+    }
+  };
 
-    return stopWatcher;
-  }, []);
+  requestNotificationPermission();
+
+  const stopWatcher =
+    startTicketReminderWatcher((task) => {
+      const reminderMessage = [
+        `Task: ${task.title}`,
+        `Ticket: ${task.ticketNumber || "Not specified"}`,
+        `Due: ${task.dueDate} at ${task.dueTime}`,
+        task.notes ? `Notes: ${task.notes}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      if (
+        "Notification" in window &&
+        Notification.permission === "granted"
+      ) {
+        const notification = new Notification(
+          "ServiceWise Task Reminder",
+          {
+            body: reminderMessage,
+            icon: "/favicon.ico",
+            tag: `servicewise-task-${task.id}`,
+            requireInteraction: true,
+          },
+        );
+
+        notification.onclick = () => {
+          window.focus();
+
+          if (task.ticketId) {
+            window.location.href =
+              `/tickets/${task.ticketId}`;
+          }
+
+          notification.close();
+        };
+      }
+
+      window.alert(
+        `SERVICEWISE TASK REMINDER\n\n${reminderMessage}`,
+      );
+    });
+
+  return stopWatcher;
+}, []);
 
   useEffect(() => {
     return () => {

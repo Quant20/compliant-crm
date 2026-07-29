@@ -1,5 +1,4 @@
 import {
-  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -68,34 +67,6 @@ export default function Agents() {
   const [selectedAgent, setSelectedAgent] =
     useState(null);
 
-  useEffect(() => {
-    const refreshAgentRecords = () => {
-      setAgentRecords(getAgents());
-    };
-
-    window.addEventListener(
-      "servicewise-agent-status-change",
-      refreshAgentRecords,
-    );
-
-    window.addEventListener(
-      "storage",
-      refreshAgentRecords,
-    );
-
-    return () => {
-      window.removeEventListener(
-        "servicewise-agent-status-change",
-        refreshAgentRecords,
-      );
-
-      window.removeEventListener(
-        "storage",
-        refreshAgentRecords,
-      );
-    };
-  }, []);
-
   const openCreateForm = () => {
     setSelectedAgent(null);
     setFormOpen(true);
@@ -162,21 +133,8 @@ export default function Agents() {
         agent.ticketCapacity || 10,
       );
 
-      const storedStatus =
-        agent.status || "Offline";
-
-      const effectiveStatus =
-        normalize(storedStatus) ===
-        "available" &&
-        capacity > 0 &&
-        activeTickets >= capacity
-          ? "Busy"
-          : storedStatus;
-
       return {
         ...agent,
-        status: effectiveStatus,
-        storedStatus,
         activeTickets,
         capacity,
         utilization:

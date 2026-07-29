@@ -1,0 +1,110 @@
+import {
+  FaCalendarAlt,
+} from "react-icons/fa";
+
+const OPTIONS = [
+  {
+    value: "today",
+    label: "Today",
+  },
+  {
+    value: "weekly",
+    label: "Weekly",
+  },
+  {
+    value: "monthly",
+    label: "Monthly",
+  },
+  {
+    value: "last-month",
+    label: "Last Month",
+  },
+  {
+    value: "custom",
+    label: "Custom Range",
+  },
+];
+
+export default function DashboardDateFilter({
+  rangeType,
+  onRangeChange,
+  customStart,
+  customEnd,
+  onCustomStartChange,
+  onCustomEndChange,
+  rangeLabel,
+}) {
+  return (
+    <section className="sw-dashboard-date-filter">
+      <div className="sw-dashboard-date-filter__heading">
+        <div className="sw-dashboard-date-filter__icon">
+          <FaCalendarAlt />
+        </div>
+
+        <div>
+          <strong>Dashboard period</strong>
+          <span>{rangeLabel}</span>
+        </div>
+      </div>
+
+      <div className="sw-dashboard-date-filter__controls">
+        <div className="sw-dashboard-date-filter__options">
+          {OPTIONS.map((option) => (
+            <button
+              type="button"
+              key={option.value}
+              className={
+                rangeType === option.value
+                  ? "sw-dashboard-date-option sw-dashboard-date-option--active"
+                  : "sw-dashboard-date-option"
+              }
+              onClick={() =>
+                onRangeChange(option.value)
+              }
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+
+        {rangeType === "custom" && (
+          <div className="sw-dashboard-custom-range">
+            <label>
+              <span>From</span>
+
+              <div className="sw-dashboard-date-input">
+                <input
+                  type="date"
+                  value={customStart}
+                  max={customEnd || undefined}
+                  onChange={(event) =>
+                    onCustomStartChange(
+                      event.target.value,
+                    )
+                  }
+                />
+              </div>
+            </label>
+
+            <label>
+              <span>To</span>
+
+              <div className="sw-dashboard-date-input">
+                <input
+                  type="date"
+                  value={customEnd}
+                  min={customStart || undefined}
+                  onChange={(event) =>
+                    onCustomEndChange(
+                      event.target.value,
+                    )
+                  }
+                />
+              </div>
+            </label>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}

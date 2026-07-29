@@ -3,7 +3,6 @@ import { FaPlus, FaSyncAlt } from "react-icons/fa";
 
 import AnalyticsDashboard from "../../components/dashboard/AnalyticsDashboard";
 import DashboardBreakdowns from "../../components/dashboard/DashboardBreakdowns";
-import DashboardDateFilter from "../../components/dashboard/DashboardDateFilter";
 import RecentActivity from "../../components/dashboard/RecentActivity";
 import RecentTickets from "../../components/dashboard/RecentTickets";
 import CreateTicketModal from "../../components/tickets/CreateTicketModal";
@@ -16,10 +15,6 @@ import {
   getRecentActivities,
   getRecentTickets,
 } from "../../data/dashboardData";
-import {
-  filterTicketsByDashboardRange,
-  getDashboardRangeLabel,
-} from "../../utils/dashboardDateRange";
 
 import "./Dashboard.css";
 
@@ -34,74 +29,32 @@ export default function Dashboard() {
 
   const { currentUser } = useAuth();
 
-  const [createTicketOpen, setCreateTicketOpen] =
-    useState(false);
-
-  const [refreshing, setRefreshing] =
-    useState(false);
-
-  const [dashboardRange, setDashboardRange] =
-    useState("today");
-
-  const [customStartDate, setCustomStartDate] =
-    useState("");
-
-  const [customEndDate, setCustomEndDate] =
-    useState("");
-
-  const filteredTickets = useMemo(
-    () =>
-      filterTicketsByDashboardRange(
-        tickets,
-        dashboardRange,
-        customStartDate,
-        customEndDate,
-      ),
-    [
-      tickets,
-      dashboardRange,
-      customStartDate,
-      customEndDate,
-    ],
-  );
-
-  const dashboardRangeLabel = useMemo(
-    () =>
-      getDashboardRangeLabel(
-        dashboardRange,
-        customStartDate,
-        customEndDate,
-      ),
-    [
-      dashboardRange,
-      customStartDate,
-      customEndDate,
-    ],
-  );
+  const [createTicketOpen, setCreateTicketOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const stats = useMemo(
-    () => getDashboardStats(filteredTickets),
-    [filteredTickets],
+    () => getDashboardStats(tickets),
+    [tickets],
   );
 
   const priorityBreakdown = useMemo(
-    () => getPriorityBreakdown(filteredTickets),
-    [filteredTickets],
+    () => getPriorityBreakdown(tickets),
+    [tickets],
   );
 
   const categoryBreakdown = useMemo(
-    () => getCategoryBreakdown(filteredTickets),
-    [filteredTickets],
+    () => getCategoryBreakdown(tickets),
+    [tickets],
   );
 
   const recentTickets = useMemo(
-    () => getRecentTickets(filteredTickets, 6),
-    [filteredTickets],
+    () => getRecentTickets(tickets, 6),
+    [tickets],
   );
 
   const recentActivities = useMemo(
-    () => getRecentActivities(filteredTickets, 8),
-    [filteredTickets],
+    () => getRecentActivities(tickets, 8),
+    [tickets],
   );
 
   async function handleRefresh() {
@@ -117,7 +70,7 @@ export default function Dashboard() {
   return (
     <div className="sw-dashboard">
       <section className="sw-dashboard-hero">
-        <div className="sw-dashboard-hero-content">
+        <div>
           <p className="sw-dashboard-eyebrow">
             Complaint Management Overview
           </p>
@@ -129,7 +82,7 @@ export default function Dashboard() {
               : ""}
           </h2>
 
-          <p className="sw-dashboard-hero-description">
+          <p>
             Track complaints, agent workload and recent customer
             activity from one workspace.
           </p>
@@ -153,7 +106,6 @@ export default function Dashboard() {
             <FaSyncAlt
               className={refreshing ? "is-spinning" : ""}
             />
-
             {refreshing ? "Refreshing…" : "Refresh"}
           </button>
 
@@ -167,16 +119,6 @@ export default function Dashboard() {
           </button>
         </div>
       </section>
-
-      <DashboardDateFilter
-        rangeType={dashboardRange}
-        onRangeChange={setDashboardRange}
-        customStart={customStartDate}
-        customEnd={customEndDate}
-        onCustomStartChange={setCustomStartDate}
-        onCustomEndChange={setCustomEndDate}
-        rangeLabel={dashboardRangeLabel}
-      />
 
       {error && (
         <div className="sw-dashboard-alert" role="alert">
